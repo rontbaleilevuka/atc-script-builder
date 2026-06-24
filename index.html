@@ -1447,9 +1447,9 @@ function buildScriptHTML() {
       // Special entries: full row coloured
       html += `
       <tr>
-        <td style="border:1px solid #999;padding:3px 5px;background:${cssBg}"><b>${e.time}</b></td>
+        <td style="border:1px solid #999;padding:3px 5px;background:${cssBg};text-align:center;vertical-align:middle"><b>${e.time}</b></td>
         <td style="border:1px solid #999;padding:3px 5px;background:${cssBg}"><b>${e.callsign}</b></td>
-        <td style="border:1px solid #999;padding:3px 5px;background:${cssBg};text-align:center;vertical-align:middle"><b>${col.label}</b></td>
+        <td style="border:1px solid #999;padding:3px 5px;background:${cssBg}"><b>${col.label}</b></td>
         <td colspan="5" style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${cssBg}"><em>${rawInstr}</em></td>
       </tr>`;
     } else {
@@ -1457,16 +1457,16 @@ function buildScriptHTML() {
       const lastRowBorder = (rawInstr || e.simNotes) ? '' : 'border-bottom:2.5px solid #555;';
       html += `
       <tr>
-        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${cssBg}"><b>${e.time}</b></td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${cssBg};text-align:center;vertical-align:middle"><b>${e.time}</b></td>
         <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${cssBg};text-align:center;vertical-align:middle">
           <b style="font-size:10.5pt">${e.callsign}</b>${acType ? `<br><span style="font-size:8.5pt">${acType}${acSquawk ? '<br>' + acSquawk : ''}</span>` : ''}
         </td>
         <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};text-align:center;vertical-align:middle">${routeDisplay}</td>
-        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt;text-align:center;vertical-align:middle">${wps[0]}</td>
-        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt;text-align:center;vertical-align:middle">${wps[1]}</td>
-        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt;text-align:center;vertical-align:middle">${wps[2]}</td>
-        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt;text-align:center;vertical-align:middle">${wps[3]}</td>
-        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt;text-align:center;vertical-align:middle">${wps[4]}</td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[0]}</td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[1]}</td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[2]}</td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[3]}</td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[4]}</td>
       </tr>`;
 
       // INSTRUCTIONS ROW — thick border on ALL cells in this row
@@ -1475,7 +1475,7 @@ function buildScriptHTML() {
         html += `
       <tr>
         <td style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${cssBg}"></td>
-        <td style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${cssBg}"></td>
+        <td style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${cssBg};text-align:center"></td>
         <td style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${instrBg}"></td>
         <td colspan="5" style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${instrBg};vertical-align:top;overflow-wrap:break-word;word-break:break-word;white-space:normal">
           <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px">
