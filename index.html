@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIM Script Builder — NZ Airways</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:ital,wght@0,400;0,600;1,400&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0f14; --panel: #13161e; --border: #252a36;
+    --text: #d4dae8; --muted: #5a6278; --accent: #00c9ff;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); min-height: 100vh; }
+  .app { max-width: 1040px; margin: 0 auto; padding: 0 16px 60px; }
+
+  /* MASTHEAD */
+  .masthead { display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 20px 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+  .masthead h1 { font-family: var(--sans); font-weight: 900; font-size: 28px;
+    letter-spacing: 3px; text-transform: uppercase; color: var(--accent); line-height: 1; }
+  .masthead p { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 4px; letter-spacing: 1px; }
+  .masthead-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  /* BUTTONS */
+  .btn { font-family: var(--sans); font-weight: 700; font-size: 12px; letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 8px 16px; border: 1px solid; cursor: pointer;
+    transition: all 0.15s; background: transparent; }
+  .btn-accent  { border-color: var(--accent); color: var(--accent); }
+  .btn-accent:hover, .btn-accent.active { background: var(--accent); color: #000; }
+  .btn-green   { border-color: #4caf50; color: #4caf50; }
+  .btn-green:hover { background: #4caf50; color: #000; }
+  .btn-orange  { border-color: #ff9800; color: #ff9800; }
+  .btn-orange:hover { background: #ff9800; color: #000; }
+  .btn-red     { border-color: #ef5350; color: #ef5350; }
+  .btn-red:hover { background: #ef5350; color: #fff; }
+  .btn-purple  { border-color: #b388ff; color: #b388ff; }
+  .btn-purple:hover { background: #b388ff; color: #000; }
+  .save-msg { font-family: var(--mono); font-size: 11px; color: #4caf50; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 5px; }
+
+  /* LEGEND */
+  .legend { background: var(--panel); border: 1px solid var(--border); margin-bottom: 14px; }
+  .legend-title { font-family: var(--sans); font-weight: 700; font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted); padding: 8px 14px;
+    background: #0f1118; border-bottom: 1px solid var(--border); }
+  .legend-grid { display: flex; flex-wrap: wrap; gap: 14px; padding: 12px 14px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-swatch-wrap { display: flex; flex-direction: column; width: 34px; border: 1px solid #444; }
+  .legend-swatch { height: 10px; width: 100%; }
+  .legend-label { font-family: var(--mono); font-size: 10px; color: var(--text); white-space: nowrap; }
+
+  /* SECTION CARDS */
+  .section-card { background: var(--panel); border: 1px solid var(--border); margin-bottom: 12px; }
+  .section-header { font-family: var(--sans); font-weight: 700; font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted); padding: 9px 14px;
+    background: #0f1118; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; }
+  .section-header.clickable { cursor: pointer; }
+  .section-header.clickable:hover { color: var(--text); }
+  .section-body { padding: 14px; }
+
+  /* GRID */
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
+  /* FORM ELEMENTS */
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+  input, select, textarea {
+    background: #0a0c10; border: 1px solid var(--border); color: var(--text);
+    font-family: var(--mono); font-size: 13px; padding: 7px 10px; outline: none;
+    transition: border-color 0.15s; width: 100%; resize: vertical; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  select option { background: #13161e; color: var(--text); }
+  textarea { min-height: 52px; }
+
+  /* IFR TIMES BOX */
+  .ifr-times-box { background: #0f1820; border: 1px solid #1a3a5c; padding: 12px; margin-bottom: 10px; }
+  .ifr-times-title { font-family: var(--sans); font-weight: 700; font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; color: #5a9fd4; margin-bottom: 10px; }
+  .ifr-times-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .ifr-time-item { display: flex; flex-direction: column; gap: 4px; }
+  .ifr-time-label { font-family: var(--mono); font-size: 10px; color: #5a9fd4; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* WAYPOINTS */
+  .wp-grid { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .wp-pair { display: flex; align-items: center; gap: 3px; flex: 1; min-width: 150px; }
+  .wp-name { flex: 1.6; } .wp-time { flex: 1; }
+  .wp-sep { color: var(--muted); font-size: 13px; }
+
+  .add-btn { width: 100%; margin-top: 10px; font-family: var(--sans); font-weight: 900;
+    font-size: 14px; letter-spacing: 3px; text-transform: uppercase; padding: 12px;
+    border: none; cursor: pointer; transition: opacity 0.15s; }
+  .add-btn:hover { opacity: 0.85; }
+
+  /* SCRIPT ROWS (builder) */
+  .entries-bar { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--muted);
+    text-transform: uppercase; padding: 8px 0; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+  .script-row { margin-bottom: 3px; }
+  .sr-route { font-family: var(--mono); font-size: 11px; flex: 1; }
+  .sr-actions { display: flex; gap: 3px; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted);
+    font-family: var(--mono); font-size: 11px; letter-spacing: 1px; border: 1px dashed var(--border); }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── VIEW SCRIPT (clean mode) ── */
+  #view-script-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  #view-script-bar .script-title-display { font-family: var(--sans); font-weight: 700; font-size: 18px;
+    letter-spacing: 2px; color: var(--text); text-transform: uppercase; flex: 1; }
+
+  /* PRINT / PREVIEW TABLE */
+  .script-output { background: white; padding: 22px; font-family: Arial, sans-serif; font-size: 9pt; color: #000; word-break: break-word; }
+  .script-output * { font-family: Arial, sans-serif; }
+  .script-output table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  .script-output td, .script-output th { border: 1px solid #999; padding: 3px 7px; vertical-align: top; font-size: 9pt; }
+  .script-output th { background: #C5E0B3 !important; font-weight: bold; text-align: left; color: #000 !important; }
+  .wx-hdr { background: #BFBFBF !important; font-weight: bold; color: #000 !important; }
+  .doc-hdr { background: #BFBFBF !important; font-weight: bold; color: #000 !important; }
+
+  @media print {
+    body { background: white; }
+    .masthead, #build-view, #view-view .view-bar-wrapper { display: none !important; }
+    #view-view { display: block !important; }
+    .script-output { padding: 0; }
+  }
+
+  @media (max-width: 640px) {
+    .row-4 { grid-template-columns: 1fr 1fr; }
+    .row-3 { grid-template-columns: 1fr 1fr; }
+    .ifr-times-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- MASTHEAD -->
+  <div class="masthead">
+    <div>
+      <h1>SIM Script Builder</h1>
+      <p>NZ Airways &nbsp;·&nbsp; Total Control &nbsp;·&nbsp; ATC Training</p>
+    </div>
+    <div class="masthead-right">
+      <button class="btn btn-green"  onclick="saveScript()">💾 Save</button>
+      <button class="btn btn-orange" onclick="document.getElementById('fileInput').click()">📂 Load</button>
+      <input type="file" id="fileInput" accept=".json" style="display:none" onchange="loadScript(event)">
+      <span id="saveMsg" class="save-msg" style="display:none"></span>
+      <div class="tabs">
+        <button class="btn btn-accent active" id="tab-build" onclick="showView('build')">Build</button>
+        <button class="btn btn-accent"        id="tab-view"  onclick="showView('view')">View Script</button>
+        <button class="btn btn-accent"        id="tab-print" onclick="showView('print')">Print</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ BUILD VIEW -->
+  <div id="build-view" class="view active">
+
+    <!-- COLOUR LEGEND -->
+    <div class="legend">
+      <div class="legend-title">Colour Key</div>
+      <div class="legend-grid" id="legendGrid"></div>
+    </div>
+
+    <!-- SCRIPT HEADER -->
+    <div class="section-card">
+      <div class="section-header">Script Header</div>
+      <div class="section-body">
+        <div class="row-2">
+          <div class="field"><span class="field-label">Exercise Title</span><input id="h_ref" placeholder="NZTG-Rating-Ex10A-Rwy07"></div>
+          <div class="field"><span class="field-label">Date</span><input id="h_date" placeholder="25/05/26"></div>
+        </div>
+        <div class="row-2">
+          <div class="field"><span class="field-label">Exercise Ref</span><input id="h_title" placeholder="RWY 07 Consolidated Traffic and Workload Management"></div>
+          <div class="field"><span class="field-label">Notes / Aircraft Restrictions &nbsp;<span style="font-size:9px;opacity:0.6;text-transform:none;letter-spacing:0">— each line = one bullet point</span></span><textarea id="h_notes" rows="3" placeholder="e.g. JMV 120kts&#10;WWH 110kts&#10;All aircraft report ready on TWR"></textarea></div>
+        </div>
+
+        <!-- FREQUENCY SETUP -->
+        <div style="margin-top:10px">
+          <span class="field-label" style="display:block;margin-bottom:8px">Frequencies <span style="font-size:9px;opacity:0.6;text-transform:none;letter-spacing:0">— toggle on, enter number</span></span>
+          <div id="freqToggleRow" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+          <div id="freqActiveGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEATHER -->
+    <div class="section-card">
+      <div class="section-header">Weather Information</div>
+      <div class="section-body">
+        <div class="row-4">
+          <div class="field"><span class="field-label">Station</span>
+            <select id="w_station"></select>
+          </div>
+          <div class="field"><span class="field-label">Obs Time</span><input id="w_obstime" placeholder="e.g. 2000"></div>
+          <div class="field">
+            <span class="field-label">ATIS</span>
+            <select id="w_atis" style="border-left:5px solid #4caf50;color:#2e7d32;font-weight:bold"></select>
+          </div>
+          <div class="field"><span class="field-label">Approach Type</span><input id="w_approach" placeholder="e.g. RNP"></div>
+        </div>
+        <div class="row-4">
+          <div class="field"><span class="field-label">Runway</span><input id="w_rwy" placeholder="e.g. 07"></div>
+          <div class="field"><span class="field-label">Wind</span><input id="w_wind" placeholder="e.g. 040/15"></div>
+          <div class="field"><span class="field-label">Visibility</span><input id="w_vis" placeholder="e.g. 25KM"></div>
+          <div class="field"><span class="field-label">Temp / Dew Point</span><input id="w_cloud" placeholder="e.g. 27/10"></div>
+        </div>
+        <div class="row-4">
+          <div class="field"><span class="field-label">QNH</span><input id="w_qnh" placeholder="e.g. 1013"></div>
+          <div class="field"><span class="field-label">2000ft Wind</span><input id="w_wind2" placeholder="e.g. 040/20"></div>
+          <div class="field"><span class="field-label">Cloud</span><input id="w_remarks" placeholder="e.g. NSC"></div>
+          <div class="field"><span class="field-label">Surface</span><input id="w_surface" placeholder="e.g. DRY"></div>
+          <div class="field"><span class="field-label">NOTAM / Special &nbsp;<span style="font-size:9px;opacity:0.6;text-transform:none;letter-spacing:0">— press Enter for a new line</span></span><textarea id="w_notam" rows="2" placeholder="e.g. CSVA GRWYS 04/22 CLSD DUE GLIDS"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW ENTRY FORM -->
+    <div class="section-card">
+      <div class="section-header clickable" id="entryToggle" onclick="toggleEntryForm()">
+        <span id="entryHeaderText">✦ New Aircraft Entry</span>
+        <span id="entryArrow">▲</span>
+      </div>
+      <div id="entryFormBody" class="section-body">
+
+        <!-- ROW 1: Entry Type + Frequency -->
+        <div class="row-2" style="margin-bottom:10px">
+          <div class="field">
+            <span class="field-label">Entry Type</span>
+            <select id="f_type" onchange="updateEntryType()"></select>
+          </div>
+          <div class="field">
+            <span class="field-label">Frequency</span>
+            <select id="f_freq"></select>
+          </div>
+        </div>
+
+        <!-- ROW 2: Callsign + Route side by side -->
+        <div class="row-2">
+          <div class="field"><span class="field-label">Callsign</span><input id="f_callsign" placeholder="e.g. ANZ801L or ZK-ZAQ"></div>
+          <div class="field"><span class="field-label">Route / Description &nbsp;<span style="font-size:9px;opacity:0.6;text-transform:none;letter-spacing:0">— press Enter for a new line</span></span><textarea id="f_route" rows="3" placeholder="e.g. TGCH3 TODAN3P GOBUK Trans"></textarea></div>
+        </div>
+
+        <!-- ROW 3: Aircraft Type + Transponder + Flight Level -->
+        <div id="flightDetailsRow" class="row-3" style="margin-bottom:10px">
+          <div class="field">
+            <span class="field-label">Aircraft Type</span>
+            <select id="f_actype"></select>
+          </div>
+          <div class="field">
+            <span class="field-label">Transponder</span>
+            <input id="f_transponder" placeholder="e.g. 5142" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
+          </div>
+          <div class="field">
+            <span class="field-label">Flight Level</span>
+            <input id="f_flevel" placeholder="e.g. F200, A050">
+          </div>
+        </div>
+
+        <!-- STANDARD TIME (non-dep) -->
+        <div id="standardTimeRow">
+          <div class="field" style="margin-bottom:10px"><span class="field-label">Time</span><input id="f_time" placeholder="e.g. 2003" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')"></div>
+        </div>
+
+        <!-- IFR DEP TIMES -->
+        <div id="ifrTimesRow" style="display:none">
+          <div class="ifr-times-box">
+            <div class="ifr-times-title" style="display:flex;align-items:center;justify-content:space-between">
+              <span>⚡ IFR Departure — Three Calls</span>
+              <label style="font-size:11px;font-weight:normal;letter-spacing:0.5px;cursor:pointer;display:flex;align-items:center;gap:5px">
+                <input type="checkbox" id="f_pushback" onchange="togglePushback()" style="cursor:pointer">
+                Requires Pushback
+              </label>
+            </div>
+            <div class="ifr-times-grid" id="ifrTimesGrid">
+              <div class="ifr-time-item">
+                <span class="ifr-time-label">① Initial Call Time</span>
+                <input id="f_time_initial" placeholder="e.g. 2000" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
+                <input id="f_ifr_sn1" placeholder="sim notes..." style="margin-top:4px;font-size:11px;opacity:0.85;border-color:#cc0000;color:#cc0000">
+              </div>
+              <div class="ifr-time-item" id="ifrStartOnly">
+                <span class="ifr-time-label">② Start Time</span>
+                <input id="f_time_start" placeholder="e.g. 2009" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
+                <input id="f_ifr_sn2" placeholder="sim notes..." style="margin-top:4px;font-size:11px;opacity:0.85;border-color:#cc0000;color:#cc0000">
+              </div>
+              <div class="ifr-time-item" id="ifrPushbackField" style="display:none">
+                <span class="ifr-time-label" style="display:flex;align-items:center;justify-content:space-between">
+                  Pushback Time
+                  <label style="font-size:10px;font-weight:normal;cursor:pointer;display:flex;align-items:center;gap:4px">
+                    <input type="checkbox" id="f_same_call" onchange="toggleSameCall()" style="cursor:pointer">
+                    Same call
+                  </label>
+                </span>
+                <input id="f_time_pushback" placeholder="e.g. 2008" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
+                <input id="f_ifr_sn_push" placeholder="sim notes..." style="margin-top:4px;font-size:11px;opacity:0.85;border-color:#cc0000;color:#cc0000">
+              </div>
+              <div class="ifr-time-item" id="ifrStartAfterPush" style="display:none">
+                <span class="ifr-time-label">Start Time</span>
+                <input id="f_time_start_push" placeholder="e.g. 2010" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
+                <input id="f_ifr_sn2_push" placeholder="sim notes..." style="margin-top:4px;font-size:11px;opacity:0.85;border-color:#cc0000;color:#cc0000">
+              </div>
+              <div class="ifr-time-item">
+                <span class="ifr-time-label" id="ifrTaxiLabel">③ Request Taxi Time</span>
+                <input id="f_time_taxi" placeholder="e.g. 2011" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
+                <input id="f_ifr_sn3" placeholder="sim notes..." style="margin-top:4px;font-size:11px;opacity:0.85;border-color:#cc0000;color:#cc0000">
+              </div>
+            </div>
+          </div>
+          <div class="row-2" style="margin-bottom:10px">
+          </div>
+        </div>
+
+        <!-- VFR DEP TIMES -->
+        <div id="vfrTimesRow" style="display:none">
+          <div class="ifr-times-box" style="border-color:#8DB3E2">
+            <div class="ifr-times-title" style="color:#6a9fd4">⚡ VFR Departure — Three Calls</div>
+            <div class="ifr-times-grid">
+              <div class="ifr-time-item">
+                <span class="ifr-time-label">① Initial Call Time</span>
+                <input id="f_vfr_time_initial" placeholder="e.g. 2003" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
+                <input id="f_vfr_sn1" placeholder="sim notes..." style="margin-top:4px;font-size:11px;opacity:0.85;border-color:#cc0000;color:#cc0000">
+              </div>
+              <div class="ifr-time-item">
+                <span class="ifr-time-label">② Request Taxi Time</span>
+                <input id="f_vfr_time_taxi" placeholder="e.g. 2004" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
+                <input id="f_vfr_sn2" placeholder="sim notes..." style="margin-top:4px;font-size:11px;opacity:0.85;border-color:#cc0000;color:#cc0000">
+              </div>
+            </div>
+          </div>
+          <div class="row-2" style="margin-bottom:10px">
+          </div>
+          <div class="field" style="margin-bottom:10px">
+            <span class="field-label">Ready Speech</span>
+            <textarea id="f_vfr_ready_instr" rows="2" placeholder='"Ready" — leave blank to use default'></textarea>
+          </div>
+        </div>
+
+        <!-- WAYPOINTS -->
+        <div id="flightFields">
+          <div class="field" style="margin-bottom:10px">
+            <span class="field-label">Waypoints (label : time)</span>
+            <div class="wp-grid" id="wpGrid"></div>
+          </div>
+        </div>
+
+        <!-- INITIAL CALL SPEECH -->
+        <div class="field" style="margin-bottom:10px">
+          <span class="field-label" id="instrLabel">Pilot Speech &nbsp;<span style="font-size:9px;opacity:0.6;text-transform:none;letter-spacing:0">— press Enter for a new line</span></span>
+          <textarea id="f_instructions" rows="3" placeholder='"Request airways to CH, amended level FL180. H1013"'></textarea>
+        </div>
+
+        <!-- IFR DEP: taxi speech override -->
+        <div id="ifrTaxiInstrRow" style="display:none">
+          <div class="field" style="margin-bottom:10px">
+            <span class="field-label">Request Taxi Speech (IFR — leave blank for default)</span>
+            <textarea id="f_taxi_instr" placeholder='"Request Taxi" — leave blank to use default'></textarea>
+          </div>
+        </div>
+
+        <!-- SIM NOTES -->
+        <div class="field" id="simNotesField" style="margin-bottom:10px">
+          <span class="field-label">Sim Notes (red italic — operator instructions)</span>
+          <textarea id="f_simnotes" placeholder="e.g. Aircraft will be used again. Rebuild EOBT 2028. Taxi for 2015 take-off"></textarea>
+        </div>
+
+        <button class="add-btn" id="addBtn" onclick="addEntry()">ADD TO SCRIPT ▶</button>
+        <button id="cancelEditBtn" onclick="cancelEdit()" style="display:none;width:100%;margin-top:6px;font-family:var(--sans);font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:8px;border:1px solid #ff9800;color:#ff9800;background:transparent;cursor:pointer">✕ Cancel Edit</button>
+      </div>
+    </div>
+
+    <!-- ENTRIES LIST -->
+    <div class="entries-bar" id="entriesBar">Script Entries — 0 aircraft · auto-sorted by time</div>
+    <div id="entriesList">
+      <div class="empty-state">No entries yet — fill in the form above and click ADD TO SCRIPT</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ VIEW SCRIPT -->
+  <div id="view-view" class="view">
+    <div class="view-bar-wrapper">
+      <div id="view-script-bar">
+        <div class="script-title-display" id="viewScriptTitle">Script</div>
+        <button class="btn btn-accent" onclick="showView('build')">✏️ Edit Script</button>
+        <button class="btn btn-green"  onclick="saveScript()">💾 Save</button>
+        <button class="btn btn-purple" onclick="exportPDF()">📄 Export PDF</button>
+        <button class="btn btn-accent" onclick="showView('print')">🖨 Print</button>
+      </div>
+    </div>
+    <div class="script-output" id="view-output"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ PRINT VIEW -->
+  <div id="print-view" class="view">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn btn-accent" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-purple" onclick="exportPDF()">📄 Export PDF</button>
+      <button class="btn btn-green"  onclick="saveScript()">💾 Save Script</button>
+      <button class="btn btn-accent" onclick="showView('view')">← Back to View</button>
+    </div>
+    <div class="script-output" id="print-output"></div>
+  </div>
+
+</div><!-- end .app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 1 — COLOUR CODES
+// ───────────────────────────────────────────────────────────────────────────────
+// Each entry type has a background colour (bg), a lighter shade (light), a label,
+// and bothRows (true = IFR: both rows coloured, false = VFR: callsign only).
+//
+// TO CHANGE A COLOUR: edit the hex value e.g. '#8DB3E2'
+// bg    = darker shade  (callsign + time cell)
+// light = lighter shade (route + waypoints + instructions row)
+// ═══════════════════════════════════════════════════════════════════════════════
+const COLOURS = {
+  vfr_dep:     { bg: '#8DB3E2', light: '#8DB3E2', label: 'VFR Departure',                bothRows: false },
+  ifr_dep:     { bg: '#8DB3E2', light: '#C6D9F1', label: 'IFR Departure',                bothRows: true  },
+  vfr_arr:     { bg: '#E5B8B7', light: '#E5B8B7', label: 'VFR Arrival',                  bothRows: false },
+  ifr_arr:     { bg: '#E5B8B7', light: '#F2DBDB', label: 'IFR Arrival',                  bothRows: true  },
+  vfr_transit: { bg: '#C2D69B', light: '#C2D69B', label: 'VFR Transit / T&G',            bothRows: false },
+  ifr_transit: { bg: '#C2D69B', light: '#D8EAC0', label: 'IFR Transit / T&G',            bothRows: true  },
+  ground:      { bg: '#9D95FF', light: '#C5C1FF', label: 'Ground Vehicle / Tug',         bothRows: true  },
+  coord:       { bg: '#FFFF00', light: '#FFFF00', label: 'Co-Ord / X-NOTE / Data Block', bothRows: true  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 2 — ENTRY TYPES
+// ───────────────────────────────────────────────────────────────────────────────
+// These are the options in the Entry Type dropdown.
+// TO RENAME: change the label text only — do not change the value.
+// TO ADD: add a matching entry in COLOURS above first.
+// ═══════════════════════════════════════════════════════════════════════════════
+const ENTRY_TYPES = [
+  { value: 'vfr_dep',     label: 'VFR Departure' },
+  { value: 'ifr_dep',     label: 'IFR Departure' },
+  { value: 'vfr_arr',     label: 'VFR Arrival' },
+  { value: 'ifr_arr',     label: 'IFR Arrival' },
+  { value: 'vfr_transit', label: 'VFR Transit / Touch & Go' },
+  { value: 'ifr_transit', label: 'IFR Transit / Touch & Go' },
+  { value: 'ground',      label: 'Ground Vehicle / Tug' },
+  { value: 'coord',       label: 'Co-Ordination / X-NOTE / Data Block' },
+];
+
+// ─── ATIS LETTERS & NATO ALPHABET (used for ATIS dropdown) ──────────────────────
+const ATIS  = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+const NATO  = ['Alpha','Bravo','Charlie','Delta','Echo','Foxtrot','Golf','Hotel','India','Juliet','Kilo','Lima','Mike','November','Oscar','Papa','Quebec','Romeo','Sierra','Tango','Uniform','Victor','Whiskey','X-Ray','Yankee','Zulu'];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 3 — AIRPORT LIST
+// ───────────────────────────────────────────────────────────────────────────────
+// Populates the Station, Origin and Destination dropdowns.
+// TO ADD:    { code: 'NZXX', name: 'NZXX — Name' },
+// TO REMOVE: delete the whole line including the comma.
+// TO RENAME: change the text after — inside the name field.
+// NOTE: apostrophes must be escaped: Hawke's Bay → Hawke\'s Bay
+// ═══════════════════════════════════════════════════════════════════════════════
+const NZ_AIRPORTS = [
+  { code: '',       name: '— Select —' },
+
+  // ── MAJOR & REGIONAL AIRPORTS ──
+  { code: 'NZAA', name: 'NZAA — Auckland International' },
+  { code: 'NZWB', name: 'NZWB — Blenheim / Woodbourne' },
+  { code: 'NZCI', name: 'NZCI — Chatham Islands / Tuuta' },
+  { code: 'NZCH', name: 'NZCH — Christchurch International' },
+  { code: 'NZDN', name: 'NZDN — Dunedin' },
+  { code: 'NZGS', name: 'NZGS — Gisborne' },
+  { code: 'NZGB', name: 'NZGB — Great Barrier / Claris' },
+  { code: 'NZHN', name: 'NZHN — Hamilton' },
+  { code: 'NZHK', name: 'NZHK — Hokitika' },
+  { code: 'NZNV', name: 'NZNV — Invercargill' },
+  { code: 'NZKT', name: 'NZKT — Kaitaia' },
+  { code: 'NZKK', name: 'NZKK — Kerikeri / Bay of Islands' },
+  { code: 'NZMF', name: 'NZMF — Milford Sound' },
+  { code: 'NZNR', name: 'NZNR — Napier / Hawke\'s Bay' },
+  { code: 'NZNS', name: 'NZNS — Nelson' },
+  { code: 'NZNP', name: 'NZNP — New Plymouth' },
+  { code: 'NZOU', name: 'NZOU — Oamaru' },
+  { code: 'NZPM', name: 'NZPM — Palmerston North' },
+  { code: 'NZQN', name: 'NZQN — Queenstown' },
+  { code: 'NZRO', name: 'NZRO — Rotorua Regional' },
+  { code: 'NZAP', name: 'NZAP — Taupo' },
+  { code: 'NZTG', name: 'NZTG — Tauranga' },
+  { code: 'NZTU', name: 'NZTU — Timaru / Richard Pearse' },
+  { code: 'NZWF', name: 'NZWF — Wanaka' },
+  { code: 'NZWU', name: 'NZWU — Whanganui' },
+  { code: 'NZWK', name: 'NZWK — Whakatane' },
+  { code: 'NZWN', name: 'NZWN — Wellington International' },
+  { code: 'NZWR', name: 'NZWR — Whangarei' },
+
+  // ── MILITARY (RNZAF) ──
+  { code: 'NZOH', name: 'NZOH — RNZAF Base Ohakea' },
+  { code: 'NZWP', name: 'NZWP — RNZAF Base Whenuapai' },
+
+  // ── GENERAL AVIATION ──
+  { code: 'NZLX', name: 'NZLX — Alexandra' },
+  { code: 'NZAR', name: 'NZAR — Ardmore' },
+  { code: 'NZAS', name: 'NZAS — Ashburton' },
+  { code: 'NZBA', name: 'NZBA — Balclutha' },
+  { code: 'NZCX', name: 'NZCX — Coromandel' },
+  { code: 'NZCS', name: 'NZCS — Cromwell Racecourse' },
+  { code: 'NZDV', name: 'NZDV — Dannevirke' },
+  { code: 'NZDA', name: 'NZDA — Dargaville' },
+  { code: 'NZFI', name: 'NZFI — Feilding' },
+  { code: 'NZFH', name: 'NZFH — Fox Glacier' },
+  { code: 'NZFJ', name: 'NZFJ — Franz Josef' },
+  { code: 'NZGA', name: 'NZGA — Galatea' },
+  { code: 'NZGY', name: 'NZGY — Glenorchy' },
+  { code: 'NZGT', name: 'NZGT — Glentanner' },
+  { code: 'NZGC', name: 'NZGC — Gore / Charlton' },
+  { code: 'NZGM', name: 'NZGM — Greymouth' },
+  { code: 'NZHS', name: 'NZHS — Hastings' },
+  { code: 'NZKO', name: 'NZKO — Kaikohe' },
+  { code: 'NZKI', name: 'NZKI — Kaikoura' },
+  { code: 'NZMS', name: 'NZMS — Masterton / Hood' },
+  { code: 'NZMA', name: 'NZMA — Matamata' },
+  { code: 'NZME', name: 'NZME — Mercer' },
+  { code: 'NZMK', name: 'NZMK — Motueka' },
+  { code: 'NZNE', name: 'NZNE — North Shore' },
+  { code: 'NZOA', name: 'NZOA — Omarama' },
+  { code: 'NZPP', name: 'NZPP — Paraparaumu / Kapiti Coast' },
+  { code: 'NZPE', name: 'NZPE — Pukekohe East' },
+  { code: 'NZRT', name: 'NZRT — Rangiora' },
+  { code: 'NZRX', name: 'NZRX — Roxburgh' },
+  { code: 'NZTI', name: 'NZTI — Taieri' },
+  { code: 'NZTK', name: 'NZTK — Takaka' },
+  { code: 'NZTM', name: 'NZTM — Taumarunui' },
+  { code: 'NZTL', name: 'NZTL — Te Anau / Manapouri' },
+  { code: 'NZTE', name: 'NZTE — Te Kowhai' },
+  { code: 'NZTH', name: 'NZTH — Thames' },
+  { code: 'NZTO', name: 'NZTO — Tokoroa' },
+  { code: 'NZUK', name: 'NZUK — Twizel / Pukaki' },
+  { code: 'NZYP', name: 'NZYP — Waipukurau' },
+  { code: 'NZWO', name: 'NZWO — Wairoa' },
+  { code: 'NZWL', name: 'NZWL — West Melton' },
+  { code: 'NZWS', name: 'NZWS — Westport' },
+  { code: 'NZWT', name: 'NZWT — Whitianga' },
+  { code: 'XXTG', name: 'XXTG — Tauranga (Local)' },
+
+  // ── NZ HOSPITAL HELIPADS ──
+  { code: 'NZAH',   name: 'NZAH — Auckland City Hospital' },
+  { code: 'NZST',   name: 'NZST — Starship Children\'s Hospital' },
+  { code: 'NZMH',   name: 'NZMH — Middlemore Hospital' },
+  { code: 'NZNH',   name: 'NZNH — North Shore Hospital' },
+  { code: 'NZWH',   name: 'NZWH — Waikato Hospital' },
+  { code: 'NZTH2',  name: 'NZTH2 — Tauranga Hospital' },
+  { code: 'NZWKH',  name: 'NZWKH — Whakatane Hospital' },
+  { code: 'NZROH',  name: 'NZROH — Rotorua Hospital' },
+  { code: 'NZGH',   name: 'NZGH — Gisborne Hospital' },
+  { code: 'NZHBH',  name: 'NZHBH — Hawke\'s Bay Hospital' },
+  { code: 'NZTAH',  name: 'NZTAH — Taranaki Base Hospital' },
+  { code: 'NZMWH',  name: 'NZMWH — Whanganui Hospital' },
+  { code: 'NZPNH',  name: 'NZPNH — Palmerston North Hospital' },
+  { code: 'NZHUTT', name: 'NZHUTT — Hutt Hospital' },
+  { code: 'NZWGNH', name: 'NZWGNH — Wellington Hospital' },
+  { code: 'NZNSH',  name: 'NZNSH — Nelson Hospital' },
+  { code: 'NZWBH',  name: 'NZWBH — Wairau Hospital (Blenheim)' },
+  { code: 'NZGMH',  name: 'NZGMH — Grey Hospital (Greymouth)' },
+  { code: 'NZCHCH', name: 'NZCHCH — Christchurch Hospital' },
+  { code: 'NZTIMH', name: 'NZTIMH — Timaru Hospital' },
+  { code: 'NZDNH',  name: 'NZDNH — Dunedin Hospital' },
+  { code: 'NZIVCH', name: 'NZIVCH — Invercargill Hospital' },
+  { code: 'NZQNH',  name: 'NZQNH — Lakes District Hospital (Queenstown)' },
+
+  // ── AUSTRALIA ──
+  { code: 'YBBN', name: 'YBBN — Brisbane' },
+  { code: 'YSSY', name: 'YSSY — Sydney' },
+  { code: 'YMML', name: 'YMML — Melbourne' },
+  { code: 'YPEQ', name: 'YPEQ — Perth' },
+  { code: 'YPAD', name: 'YPAD — Adelaide' },
+  { code: 'YBCS', name: 'YBCS — Cairns' },
+  { code: 'YBCG', name: 'YBCG — Gold Coast' },
+  { code: 'YBTL', name: 'YBTL — Townsville' },
+  { code: 'YBMC', name: 'YBMC — Sunshine Coast' },
+  { code: 'YMEN', name: 'YMEN — Melbourne (Essendon)' },
+  { code: 'YMAV', name: 'YMAV — Avalon' },
+  { code: 'YSCB', name: 'YSCB — Canberra' },
+  { code: 'YHDM', name: 'YHDM — Hobart' },
+  { code: 'YBHM', name: 'YBHM — Hamilton Island' },
+  { code: 'YBRK', name: 'YBRK — Rockhampton' },
+  { code: 'YBMA', name: 'YBMA — Mount Isa' },
+  { code: 'YPDN', name: 'YPDN — Darwin' },
+  { code: 'YPPH', name: 'YPPH — Perth (International)' },
+  { code: 'YPLM', name: 'YPLM — Learmonth' },
+  { code: 'YBAS', name: 'YBAS — Alice Springs' },
+  { code: 'YPKG', name: 'YPKG — Kalgoorlie' },
+  { code: 'YSNF', name: 'YSNF — Norfolk Island' },
+
+  // ── PACIFIC ──
+  { code: 'NFFN', name: 'NFFN — Nadi (Fiji)' },
+  { code: 'NSFA', name: 'NSFA — Apia / Faleolo (Samoa)' },
+];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 4 — AIRCRAFT LIST
+// ───────────────────────────────────────────────────────────────────────────────
+// Populates the Aircraft Type dropdown. Listed in alphabetical order.
+// TO ADD: insert a new entry in the right alphabetical position.
+// TO REMOVE: delete the line including the comma.
+// ═══════════════════════════════════════════════════════════════════════════════
+const AIRCRAFT_TYPES = [
+  '— Select —',
+  'A4K','A19N','A20N','A21N','A109','A124','A139','A306','A310','A319',
+  'A320','A321','A332','A333','A339','A342','A343','A345','A346','A359',
+  'A388','AB412','AN225','AS50','AS65','AT42','AT75','AT76','ATP','AW139',
+  'B47G','B52','B77W','B190','B206','B212','B350','B412','B429','B462',
+  'B732','B733','B734','B735','B737','B738','B744','B748','B752','B762',
+  'B763','B764','B772','B773','B778','B779','B789','Balloon',
+  'BDOG','BE20','BE58','BK17','BN2P',
+  'C5','C17','C30J','C56X','C130','C130J30','C152','C160','C172','C182',
+  'C185','C206','C206float','C208','C208CargoPod','C208COMBAT',
+  'C402','C421','C510','C525','C680','CH47','CH53','CL60',
+  'Concorde','CRES','CRJ2','CRJ9','CT4','CT5','CVLT',
+  'D328','D328prop','DA40','DA42','DC3',
+  'DH8A','DH8B','DH8C','DH8D','DH82','DHC3','drone','DV20',
+  'E3A','E135','E190','E290','E295','E314','EC30','EC35','EC45','EH101','ELA7',
+  'F15','F16','F18','F35','F50','F70','FA50','Fokker',
+  'G5','G115','G8000','GA8','GLAS','GLIDER',
+  'H269','H500','HAWK',
+  'JS32','JS41',
+  'k35E','KODI',
+  'L39','LJ45',
+  'MD11','MD82','MFI17','MIG21','MIR2','MU2','MU2test',
+  'NH90',
+  'P3','P06T','P8','P28A','P28R','P46T','P68','P2002','P2008',
+  'PA18','PA27','PA31','PA32','PA34','PA38','PC6','PC12','PIAT','Pitts',
+  'R22','R44','R200','RJ1H','RQ11','RV7',
+  'S61','S76','S92','SA330','SA342','SF34','Skycrane','Skydive','Spitfire',
+  'SR22','SR71','SW4A',
+  'T6C',
+  'UFO','UH1','UH60',
+  'V22',
+  'YK52',
+  'Z','ZHelicarrier',
+];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 9 — FREQUENCY MANAGEMENT
+// ───────────────────────────────────────────────────────────────────────────────
+// Frequencies are toggled on/off. Active ones show a number input.
+// Only frequencies with a number populate the entry dropdowns and view script.
+// ═══════════════════════════════════════════════════════════════════════════════
+const DEFAULT_FREQS = [
+  { name: 'TWR',   number: '', active: false },
+  { name: 'GND',   number: '', active: false },
+  { name: 'DEL',   number: '', active: false },
+  { name: 'APP',   number: '', active: false },
+  { name: 'DEP',   number: '', active: false },
+  { name: 'INFO',  number: '', active: false },
+  { name: 'APRON', number: '', active: false },
+];
+
+let scriptFreqs = DEFAULT_FREQS.map(f => ({ ...f }));
+
+function buildFreqSetup() {
+  const toggleRow  = document.getElementById('freqToggleRow');
+  const activeGrid = document.getElementById('freqActiveGrid');
+  if (!toggleRow || !activeGrid) return;
+
+  // Build toggle pills
+  toggleRow.innerHTML = '';
+  scriptFreqs.forEach((f, i) => {
+    const active = f.active;
+    const pill = document.createElement('button');
+    pill.textContent = f.name;
+    pill.style.cssText = `
+      font-family:var(--mono);font-size:11px;letter-spacing:1px;padding:4px 12px;
+      border:1px solid ${active ? '#00c9ff' : 'var(--border)'};
+      background:${active ? '#00c9ff22' : 'transparent'};
+      color:${active ? '#00c9ff' : 'var(--muted)'};
+      cursor:pointer;transition:all 0.15s;
+    `;
+    pill.onclick = () => { scriptFreqs[i].active = !scriptFreqs[i].active; buildFreqSetup(); };
+    toggleRow.appendChild(pill);
+  });
+
+  // Build active frequency inputs
+  activeGrid.innerHTML = '';
+  const activeFreqs = scriptFreqs.filter(f => f.active);
+  if (activeFreqs.length === 0) {
+    activeGrid.innerHTML = '<div style="font-size:11px;color:var(--muted);padding:4px 0">No frequencies selected — toggle above to add</div>';
+  } else {
+    scriptFreqs.forEach((f, i) => {
+      if (!f.active) return;
+      activeGrid.innerHTML += `
+        <div style="display:flex;align-items:center;gap:4px;background:var(--panel);border:1px solid #00c9ff33;padding:5px 8px">
+          <span style="font-family:var(--mono);font-size:11px;color:#00c9ff;min-width:42px">${f.name}</span>
+          <span style="color:var(--muted);font-size:10px">-</span>
+          <input value="${f.number}" placeholder="freq" oninput="scriptFreqs[${i}].number=this.value;refreshFreqDropdowns()"
+            style="flex:1;font-size:11px;font-family:var(--mono);background:transparent;border:none;color:var(--text);outline:none;min-width:0">
+        </div>`;
+    });
+  }
+
+  refreshFreqDropdowns();
+}
+
+function addFreqRow() {
+  scriptFreqs.push({ name: 'Custom', number: '', active: true });
+  buildFreqSetup();
+}
+
+function removeFreq(i) {
+  scriptFreqs.splice(i, 1);
+  buildFreqSetup();
+}
+
+function refreshFreqDropdowns() {
+  ['f_freq'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— Select —</option>';
+    scriptFreqs.filter(f => f.active && f.number).forEach(f => {
+      const label = `${f.name} - ${f.number}`;
+      const val   = f.number;
+      const o = document.createElement('option');
+      o.value = val; o.textContent = label;
+      if (cur === val) o.selected = true;
+      sel.appendChild(o);
+    });
+  });
+}
+
+function populateAirportSelect(sel, selectedVal) {
+  sel.innerHTML = '';
+  NZ_AIRPORTS.forEach(a => {
+    const o = document.createElement('option');
+    o.value = a.code;
+    o.textContent = a.name;
+    if (selectedVal && a.code === selectedVal) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+let entries = [];
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 5 — INITIALISATION
+// ───────────────────────────────────────────────────────────────────────────────
+// Runs when the page loads. Builds all dropdowns and sets up keyboard navigation.
+// DO NOT EDIT unless you know what you are doing.
+// ═══════════════════════════════════════════════════════════════════════════════
+window.onload = function() {
+  // ATIS dropdown
+  const atisSel = document.getElementById('w_atis');
+  ATIS.forEach((l,i) => {
+    const o = document.createElement('option');
+    o.value = l; o.textContent = l + ' — ' + NATO[i];
+    atisSel.appendChild(o);
+  });
+  atisSel.value = 'H';
+
+  // Entry type dropdown
+  const typeSel = document.getElementById('f_type');
+  ENTRY_TYPES.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t.value; o.textContent = t.label;
+    typeSel.appendChild(o);
+  });
+
+  // Waypoint fields — Origin and Dest are airport dropdowns, middle 3 are free text
+  const wpGrid = document.getElementById('wpGrid');
+  ['Origin','WP 2','WP 3','WP 4','Dest'].forEach((ph,i) => {
+    const isAirport = i === 0 || i === 4;
+    const needsTime = i !== 0; // Origin doesn't need a time
+    wpGrid.innerHTML += `<div class="wp-pair">
+      ${isAirport
+        ? `<select class="wp-name" id="wp_label_${i}"></select>`
+        : `<input class="wp-name" id="wp_label_${i}" placeholder="${ph}">`
+      }
+      ${needsTime ? `<span class="wp-sep">:</span><input class="wp-time" id="wp_time_${i}" placeholder="time">` : `<input type="hidden" id="wp_time_${i}" value="">`}
+    </div>`;
+  });
+
+  buildLegend();
+  buildFreqSetup();
+  updateEntryType();
+
+  // Populate aircraft type dropdown
+  const actypeSel = document.getElementById('f_actype');
+  AIRCRAFT_TYPES.forEach(a => {
+    const o = document.createElement('option');
+    o.value = a === '— Select —' ? '' : a;
+    o.textContent = a;
+    actypeSel.appendChild(o);
+  });
+
+  // Populate station dropdown
+  populateAirportSelect(document.getElementById('w_station'), 'NZTG');
+
+  // Populate Origin and Dest waypoint dropdowns (indices 0 and 4)
+  populateAirportSelect(document.getElementById('wp_label_0'), '');
+  populateAirportSelect(document.getElementById('wp_label_4'), '');
+
+  // ── KEYBOARD NAVIGATION ───────────────────────────────────────────────────
+  // Enter or arrow keys move between fields in the builder.
+  // The nav order adapts based on which entry type is currently selected.
+  setupKeyboardNav();
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 6 — KEYBOARD NAVIGATION
+// ───────────────────────────────────────────────────────────────────────────────
+// Enter / ↓ = next field.  ↑ = previous field.
+// Order adapts automatically based on the selected entry type.
+// ═══════════════════════════════════════════════════════════════════════════════
+function getNavOrder() {
+  const type = document.getElementById('f_type').value;
+  const isIFR = type === 'ifr_dep';
+  const isVFR = type === 'vfr_dep';
+  const isSpecial = type === 'coord' || type === 'ground';
+
+  const base = ['f_type', 'f_freq', 'f_callsign', 'f_actype', 'f_transponder', 'f_flevel', 'f_route'];
+
+  if (isIFR) {
+    base.push('f_time_initial','f_ifr_sn1','f_time_start','f_ifr_sn2','f_time_taxi','f_ifr_sn3');
+  } else if (isVFR) {
+    base.push('f_vfr_time_initial','f_vfr_sn1','f_vfr_time_taxi','f_vfr_sn2');
+  } else {
+    base.push('f_time','f_freq');
+  }
+
+  if (!isSpecial) {
+    base.push('wp_label_0','wp_time_0','wp_label_1','wp_time_1','wp_label_2','wp_time_2','wp_label_3','wp_time_3','wp_label_4','wp_time_4');
+  }
+
+  base.push('f_instructions');
+
+  if (isIFR) base.push('f_taxi_instr');
+  if (isVFR) base.push('f_vfr_ready_instr');
+
+  if (!isSpecial && !isIFR && !isVFR) base.push('f_simnotes');
+
+  base.push('addBtn');
+  return base;
+}
+
+function setupKeyboardNav() {
+  document.addEventListener('keydown', function(e) {
+    // Only handle Enter and arrow keys
+    const tag = document.activeElement ? document.activeElement.tagName : '';
+    const id  = document.activeElement ? document.activeElement.id : '';
+
+    // Allow normal Enter in textareas (multi-line)
+    if (tag === 'TEXTAREA' && e.key === 'Enter' && !e.shiftKey) return;
+
+    // Enter or ArrowRight/ArrowDown = move forward
+    // ArrowLeft/ArrowUp = move backward
+    const fwd = e.key === 'Enter' || e.key === 'ArrowRight' || e.key === 'ArrowDown';
+    const bwd = e.key === 'ArrowLeft' || e.key === 'ArrowUp';
+
+    if (!fwd && !bwd) return;
+
+    // Don't intercept arrows inside text inputs (let cursor move normally)
+    // Only intercept Enter and up/down arrows
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && tag === 'INPUT') return;
+
+    const order = getNavOrder();
+    const idx = order.indexOf(id);
+    if (idx === -1) return;
+
+    e.preventDefault();
+    const next = fwd ? order[idx + 1] : order[idx - 1];
+    if (!next) {
+      if (fwd && id === 'addBtn') document.getElementById('addBtn').click();
+      return;
+    }
+    const el = document.getElementById(next);
+    if (el) {
+      el.focus();
+      if (el.select) el.select();
+    }
+  });
+}
+
+function buildLegend() {
+  const grid = document.getElementById('legendGrid');
+  Object.entries(COLOURS).forEach(([key,c]) => {
+    grid.innerHTML += `<div class="legend-item">
+      <div class="legend-swatch-wrap">
+        <div class="legend-swatch" style="background:${c.bg}"></div>
+        <div class="legend-swatch" style="background:${c.bothRows?c.bg:'#fff'};border-top:1px solid #ccc"></div>
+      </div>
+      <span class="legend-label">${c.label}</span>
+    </div>`;
+  });
+}
+
+// ─── ENTRY TYPE CHANGE ────────────────────────────────────────────────────────
+function updateEntryType() {
+  const type = document.getElementById('f_type').value;
+  const col = COLOURS[type];
+  const isSpecial = type === 'coord' || type === 'ground';
+  const isIFRDep  = type === 'ifr_dep';
+  const isVFRDep  = type === 'vfr_dep';
+  const is3Call   = isIFRDep || isVFRDep;
+
+  // Accent colours
+  document.getElementById('f_type').style.borderLeft = '5px solid ' + col.bg;
+  document.getElementById('f_type').style.background = col.bg + '22';
+  document.getElementById('addBtn').style.background = col.bg;
+  document.getElementById('addBtn').style.color = '#000';
+  document.getElementById('entryToggle').style.borderLeft = '5px solid ' + col.bg;
+
+  // Show/hide time rows
+  document.getElementById('standardTimeRow').style.display = is3Call   ? 'none'  : 'grid';
+  document.getElementById('ifrTimesRow').style.display     = isIFRDep  ? 'block' : 'none';
+  document.getElementById('ifrTaxiInstrRow').style.display = isIFRDep  ? 'block' : 'none';
+  document.getElementById('vfrTimesRow').style.display     = isVFRDep  ? 'block' : 'none';
+
+  // Show/hide flight fields
+  document.getElementById('flightFields').style.display  = isSpecial ? 'none' : 'block';
+  document.getElementById('simNotesField').style.display = (isSpecial || isIFRDep || isVFRDep) ? 'none' : 'block';
+
+  // Labels
+  document.getElementById('instrLabel').textContent = isSpecial ? 'Instruction / Note'
+    : is3Call ? 'Initial Call Speech' : 'Pilot Speech';
+  document.getElementById('f_instructions').placeholder = isIFRDep
+    ? '"Request airways to CH, amended level FL180. H1013"'
+    : isVFRDep ? '"4 on board for Motiti, H1013, request Taxi"'
+    : isSpecial ? 'e.g. Activate onwards flight plan for ZAQ'
+    : '"Crossing MORTA on RNP 07 Approach with H1013"';
+}
+
+// ─── TOGGLE FORM ──────────────────────────────────────────────────────────────
+let entryFormOpen = true;
+function toggleEntryForm() {
+  entryFormOpen = !entryFormOpen;
+  document.getElementById('entryFormBody').style.display = entryFormOpen ? 'block' : 'none';
+  document.getElementById('entryArrow').textContent = entryFormOpen ? '▲' : '▼';
+}
+
+// ─── ADD ENTRY ────────────────────────────────────────────────────────────────
+function addEntry() {
+  const type      = document.getElementById('f_type').value;
+  // Read separate fields
+  const callsignRaw = document.getElementById('f_callsign').value.trim();
+  const callsign     = callsignRaw;
+  const actype       = document.getElementById('f_actype').value.trim();
+  const transponder  = document.getElementById('f_transponder').value.trim();
+  const flevel       = document.getElementById('f_flevel').value.trim();
+  // Combine into aircraftType for storage/rendering: actype + transponder on separate lines
+  const aircraftType = [actype, transponder, flevel].filter(Boolean).join('\n');
+  const isSpecial = type === 'coord' || type === 'ground';
+  const isIFRDep  = type === 'ifr_dep';
+  const isVFRDep  = type === 'vfr_dep';
+
+  if (!callsign) { alert('Please enter a Callsign.'); return; }
+
+  const waypoints = [];
+  for (let i = 0; i < 5; i++) {
+    waypoints.push({
+      label: document.getElementById('wp_label_' + i).value.trim(),
+      time:  document.getElementById('wp_time_'  + i).value.trim(),
+    });
+  }
+
+  const route        = isSpecial ? '' : document.getElementById('f_route').value.trim();
+  const instructions = document.getElementById('f_instructions').value.trim();
+  const simNotes     = isSpecial ? '' : document.getElementById('f_simnotes').value.trim();
+
+  // ── EDIT MODE ──────────────────────────────────────────────────────────────
+  if (editingIndex >= 0 || editingCallsign) {
+
+    if (editingCallsign && (isIFRDep || isVFRDep)) {
+      // Remove ALL existing rows for this callsign+type, then re-add fresh
+      entries = entries.filter(x => !(x.callsign === editingCallsign && x.entryType === editingType));
+      editingIndex    = -1;
+      editingCallsign = null;
+      editingType     = null;
+      // Fall through to ADD MODE below to re-insert all rows
+
+    } else {
+      // Single entry — update in place and re-sort
+      const freq = document.getElementById('f_freq').value.trim();
+      const time = document.getElementById('f_time').value.trim()
+                 || document.getElementById('f_time_initial').value.trim();
+      if (!time) { alert('Please enter a Time.'); return; }
+      entries[editingIndex] = { time, callsign, entryType: type, aircraftType, route, waypoints, instructions, simNotes, freq };
+      entries.sort((a, b) => (parseInt(a.time)||0) - (parseInt(b.time)||0));
+      cancelEdit();
+      return;
+    }
+  }
+
+  // ── ADD MODE ───────────────────────────────────────────────────────────────
+
+  if (isIFRDep) {
+    const freq    = document.getElementById('f_freq').value.trim();
+    const hasPush = document.getElementById('f_pushback').checked;
+    const t1  = document.getElementById('f_time_initial').value.trim();
+    const t3  = document.getElementById('f_time_taxi').value.trim();
+    const taxiSpeech = document.getElementById('f_taxi_instr').value.trim() || '"Request Taxi"';
+    const sn1 = document.getElementById('f_ifr_sn1').value.trim();
+    const sn3 = document.getElementById('f_ifr_sn3').value.trim();
+    const base = { callsign, entryType: type, aircraftType, route, waypoints, freq };
+    // Validate at least one time is entered
+    if (!t1 && !t3) { alert('Please enter at least one time.'); return; }
+    if (t1) insertSorted({ ...base, time: t1, instructions, simNotes: sn1 });
+
+    if (hasPush) {
+      const sameCall = document.getElementById('f_same_call').checked;
+      const tp  = document.getElementById('f_time_pushback').value.trim();
+      const snp = document.getElementById('f_ifr_sn_push').value.trim();
+      if (sameCall) {
+        // Single combined row
+        if (tp) insertSorted({ ...base, time: tp, instructions: '"Request Start and Pushback"', simNotes: snp });
+      } else {
+        const ts  = document.getElementById('f_time_start_push').value.trim();
+        const sns = document.getElementById('f_ifr_sn2_push').value.trim();
+        if (tp) insertSorted({ ...base, time: tp, instructions: '"Request Pushback"', simNotes: snp });
+        if (ts) insertSorted({ ...base, time: ts, instructions: '"Request Start"',    simNotes: sns });
+      }
+    } else {
+      const t2  = document.getElementById('f_time_start').value.trim();
+      const sn2 = document.getElementById('f_ifr_sn2').value.trim();
+      if (t2) insertSorted({ ...base, time: t2, instructions: 'Start', simNotes: sn2 });
+    }
+    if (t3) insertSorted({ ...base, time: t3, instructions: taxiSpeech, simNotes: sn3 });
+
+  } else if (isVFRDep) {
+    const freq  = document.getElementById('f_freq').value.trim();
+    const t1    = document.getElementById('f_vfr_time_initial').value.trim();
+    const t2    = document.getElementById('f_vfr_time_taxi').value.trim();
+    const readySpeech = document.getElementById('f_vfr_ready_instr').value.trim() || '"Ready"';
+    const taxiSpeech  = '"Request Taxi"';
+    const sn1 = document.getElementById('f_vfr_sn1').value.trim();
+    const sn2 = document.getElementById('f_vfr_sn2').value.trim();
+    // Validate at least one time is entered
+    if (!t1 && !t2) { alert('Please enter at least one time.'); return; }
+    const base = { callsign, entryType: type, aircraftType, route, waypoints, freq };
+    if (t1) insertSorted({ ...base, time: t1, instructions, simNotes: sn1 });
+    if (t2) insertSorted({ ...base, time: t2, instructions: taxiSpeech, simNotes: sn2 });
+
+  } else {
+    const freq = document.getElementById('f_freq').value.trim();
+    const time = document.getElementById('f_time').value.trim();
+    if (!time) { alert('Please enter a Time.'); return; }
+    insertSorted({ time, callsign, entryType: type, aircraftType, route, waypoints, instructions, simNotes, freq });
+  }
+
+  // Clear form fields
+  ['f_time','f_time_initial','f_time_start','f_time_taxi',
+   'f_vfr_time_initial','f_vfr_time_taxi','f_vfr_ready_instr',
+   'f_ifr_sn1','f_ifr_sn2','f_ifr_sn3','f_time_pushback','f_time_start_push','f_ifr_sn_push','f_ifr_sn2_push',
+   'f_vfr_sn1','f_vfr_sn2','f_callsign','f_route','f_transponder','f_flevel','f_instructions','f_taxi_instr','f_simnotes'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  for (let i = 0; i < 5; i++) {
+    const lbl = document.getElementById('wp_label_' + i);
+    const tm  = document.getElementById('wp_time_'  + i);
+    if (lbl) lbl.value = '';  // works for both input and select
+    if (tm)  tm.value  = '';
+  }
+
+  // Reset pushback checkbox
+  const at = document.getElementById('f_actype'); if (at) at.value = '';
+  const pb = document.getElementById('f_pushback');
+  if (pb) { pb.checked = false; togglePushback(); }
+  const sc = document.getElementById('f_same_call');
+  if (sc) sc.checked = false;
+  renderEntries();
+}
+
+function insertSorted(entry) {
+  const t = parseInt(entry.time) || 0;
+  const idx = entries.findIndex(e => (parseInt(e.time) || 0) > t);
+  if (idx === -1) entries.push(entry);
+  else entries.splice(idx, 0, entry);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 7 — BUILDER ENTRY RENDERING
+// ───────────────────────────────────────────────────────────────────────────────
+// Renders the list of script entries in the builder with colour coding,
+// edit/delete/reorder buttons and the two-shade IFR colour system.
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderEntries() {
+  const container = document.getElementById('entriesList');
+  document.getElementById('entriesBar').textContent =
+    'Script Entries — ' + entries.length + ' aircraft · auto-sorted by time';
+
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="empty-state">No entries yet — fill in the form above and click ADD TO SCRIPT</div>';
+    return;
+  }
+
+  container.innerHTML = entries.map((e, i) => {
+    const col = COLOURS[e.entryType];
+    const isSpecial = e.entryType === 'coord' || e.entryType === 'ground';
+    const isIFR = col.bothRows;
+    const darkBg = col.bg;
+    const lightBg = col.light;
+
+    // Time + callsign = dark shade, route/wps/instructions = light shade (IFR only)
+    const topRowBg = isSpecial ? darkBg : (isIFR ? lightBg : '#e8e8e8');
+    const csBg     = darkBg;
+    const botBg    = isIFR || isSpecial ? lightBg : '#f9f9f9';
+
+    const wpStr = e.waypoints ? e.waypoints.filter(w => w.label)
+      .map(w => w.label + (w.time ? ': ' + w.time : '')).join(' | ') : '';
+    const rawInstr = e.instructions || '';
+    const isKw = rawInstr === 'Start' || rawInstr === '"Request Taxi"' || rawInstr === '"Ready"';
+    const speech = (rawInstr.startsWith('"') || rawInstr === '' || isKw
+      ? rawInstr : `"${rawInstr}"`).replace(/\n/g, '<br>');
+
+    const upBtn   = i > 0               ? `<button class="sr-move" onclick="moveEntry(${i},-1)" style="background:rgba(0,0,0,0.15);border:none;color:#000;cursor:pointer;font-size:11px;padding:2px 7px;border-radius:2px">↑</button>` : '';
+    const downBtn = i < entries.length-1 ? `<button class="sr-move" onclick="moveEntry(${i},1)"  style="background:rgba(0,0,0,0.15);border:none;color:#000;cursor:pointer;font-size:11px;padding:2px 7px;border-radius:2px">↓</button>` : '';
+    const hasBot  = rawInstr || e.simNotes;
+    const editBtn  = `<button onclick="editEntry(${i})" style="background:rgba(0,100,200,0.18);border:none;color:#004080;cursor:pointer;font-size:11px;padding:2px 7px;border-radius:2px">✏️</button>`;
+
+    if (isSpecial) {
+      return `<div class="script-row">
+        <div class="sr-top" style="background:${col.bg};color:#000">
+          <div class="sr-time">${e.time}</div>
+          <div class="sr-callsign">${e.callsign}</div>
+          <div class="sr-route"><em>${col.label}</em></div>
+          <div class="sr-actions">${editBtn}${upBtn}${downBtn}<button class="sr-del" onclick="deleteEntry(${i})" style="background:rgba(180,0,0,0.2);border:none;color:#800;cursor:pointer;font-size:11px;padding:2px 7px;border-radius:2px">✕</button></div>
+        </div>
+        ${hasBot ? `<div class="sr-bot" style="background:${col.bg};color:#000">
+          <div class="sr-bot-pad"></div>
+          <div class="sr-bot-content"><em>${rawInstr}</em></div>
+        </div>` : ''}
+      </div>`;
+    }
+
+    return `<div class="script-row" style="border:1px solid #2a2f3e">
+      <div style="display:flex;align-items:center;flex-wrap:wrap;background:${topRowBg};color:#000;min-height:32px">
+        <div class="sr-time" style="padding:5px 8px;font-family:var(--mono);font-size:13px;font-weight:bold;min-width:44px;background:${csBg}">${e.time}</div>
+        <div style="padding:5px 8px;font-family:var(--mono);font-size:13px;font-weight:bold;background:${csBg};min-width:140px">
+          ${e.callsign}${e.aircraftType ? `<span style="font-size:10px;font-weight:normal;opacity:0.75"><br>${e.aircraftType.replace(/\n/g,'<br>')}</span>` : ''}
+        </div>
+        <div class="sr-route" style="padding:5px 8px;font-family:var(--mono);font-size:11px;flex:1;background:${topRowBg}">${(e.route||'').replace(/\n/g,'<br>')}</div>
+        ${e.freq ? `<div style="font-family:var(--mono);font-size:12px;font-weight:bold;padding:5px 8px;margin-left:auto;background:${topRowBg}">${e.freq}</div>` : ''}
+        <div class="sr-actions" style="padding:5px 6px;background:${topRowBg}">${editBtn}${upBtn}${downBtn}<button onclick="deleteEntry(${i})" style="background:rgba(180,0,0,0.2);border:none;color:#800;cursor:pointer;font-size:11px;padding:2px 7px;border-radius:2px">✕</button></div>
+      </div>
+      ${wpStr ? `<div style="font-family:var(--mono);font-size:10px;opacity:0.75;padding:2px 8px 4px 52px;background:${isIFR?col.bg:'#e8e8e8'};color:#000">${wpStr}</div>` : ''}
+      ${hasBot ? `<div style="display:flex;padding:5px 8px 6px;font-size:12px;line-height:1.5;background:${botBg};color:#333">
+        <div style="min-width:52px"></div>
+        <div style="flex:1">
+          <span>${speech}</span>
+          ${e.simNotes ? `<span style="color:#cc0000;font-style:italic;font-size:11px"> ${e.simNotes}</span>` : ''}
+        </div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function deleteEntry(i) { entries.splice(i,1); renderEntries(); }
+function moveEntry(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= entries.length) return;
+  [entries[i], entries[j]] = [entries[j], entries[i]];
+  renderEntries();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 8 — EDIT / ADD ENTRIES
+// ───────────────────────────────────────────────────────────────────────────────
+// editEntry(i)    — loads entry into form for editing. Dep types load as a group.
+// cancelEdit()    — discards edit, resets form to ADD mode.
+// addEntry()      — reads form and adds or updates entry. Auto-sorts by time.
+// deleteEntry(i)  — removes entry at index i.
+// moveEntry(i,d)  — moves entry up (-1) or down (+1).
+// ═══════════════════════════════════════════════════════════════════════════════
+let editingIndex    = -1;   // -1 = add mode, ≥0 = edit mode (single entry)
+let editingCallsign = null; // callsign group being edited (dep types)
+let editingType     = null;
+
+function editEntry(i) {
+  const e = entries[i];
+  const isDepType = e.entryType === 'ifr_dep' || e.entryType === 'vfr_dep';
+
+  // Set entry type and update form
+  document.getElementById('f_type').value = e.entryType;
+  updateEntryType();
+
+  const sv = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+
+  // Common fields — always populated from the clicked entry
+  // Populate separate fields from stored entry
+  sv('f_callsign', e.callsign);
+  // Split aircraftType back into actype/transponder/flevel
+  const acParts = (e.aircraftType || '').split('\n');
+  const actypeSel = document.getElementById('f_actype');
+  if (actypeSel) actypeSel.value = acParts[0] || '';
+  sv('f_transponder', acParts[1] || '');
+  sv('f_flevel',      acParts[2] || '');
+  sv('f_route',        e.route);
+  sv('f_instructions', e.instructions);
+  sv('f_simnotes',     e.simNotes);
+  sv('f_freq', e.freq);
+  sv('f_time',         e.time);
+
+  // Waypoints
+  (e.waypoints || []).forEach((w, idx) => {
+    const lbl = document.getElementById('wp_label_' + idx);
+    const tm  = document.getElementById('wp_time_'  + idx);
+    if (lbl) lbl.value = w.label || '';
+    if (tm)  tm.value  = w.time  || '';
+  });
+
+  if (isDepType) {
+    // For dep types — find ALL rows for this callsign and populate all time fields
+    editingCallsign = e.callsign;
+    editingType     = e.entryType;
+    editingIndex    = -1; // handled as a group
+
+    // Find all entries for this callsign
+    const group = entries.filter(x => x.callsign === e.callsign && x.entryType === e.entryType);
+
+    if (e.entryType === 'ifr_dep') {
+      // Map rows by instruction keyword
+      group.forEach(row => {
+        const instr = row.instructions || '';
+        if (instr !== 'Start' && instr !== '"Request Taxi"' && instr !== '"Request Pushback"' && instr !== '"Request Start"') {
+          sv('f_time_initial', row.time); sv('f_ifr_sn1', row.simNotes);
+        } else if (instr === 'Start') {
+          sv('f_time_start', row.time); sv('f_ifr_sn2', row.simNotes);
+        } else if (instr === '"Request Pushback"') {
+          document.getElementById('f_pushback').checked = true; togglePushback();
+          sv('f_time_pushback', row.time); sv('f_ifr_sn_push', row.simNotes);
+        } else if (instr === '"Request Start"') {
+          sv('f_time_start_push', row.time); sv('f_ifr_sn2_push', row.simNotes);
+        } else if (instr.includes('Taxi') || instr === '"Request Taxi"') {
+          sv('f_time_taxi', row.time); sv('f_ifr_sn3', row.simNotes);
+          sv('f_taxi_instr', instr === '"Request Taxi"' ? '' : instr);
+        }
+      });
+    } else if (e.entryType === 'vfr_dep') {
+      group.forEach(row => {
+        const instr = row.instructions || '';
+        if (instr !== '"Request Taxi"' && instr !== '"Ready"') {
+          sv('f_vfr_time_initial', row.time); sv('f_vfr_sn1', row.simNotes);
+          sv('f_instructions', instr);
+        } else if (instr === '"Request Taxi"') {
+          sv('f_vfr_time_taxi', row.time); sv('f_vfr_sn2', row.simNotes);
+        }
+      });
+    }
+  } else {
+    // Single entry edit
+    editingIndex    = i;
+    editingCallsign = null;
+    editingType     = null;
+    sv('f_time_initial', e.time);
+  }
+
+  // Switch to UPDATE mode
+  const btn = document.getElementById('addBtn');
+  btn.textContent = 'UPDATE ENTRY ✔';
+  btn.style.background = '#ff9800';
+  btn.style.color = '#000';
+  document.getElementById('cancelEditBtn').style.display = 'block';
+
+  document.getElementById('entryToggle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!entryFormOpen) toggleEntryForm();
+}
+
+function toggleSameCall() {
+  const same = document.getElementById('f_same_call').checked;
+  document.getElementById('ifrStartAfterPush').style.display = same ? 'none' : 'block';
+}
+
+function togglePushback() {
+  const hasPush = document.getElementById('f_pushback').checked;
+  document.getElementById('ifrStartOnly').style.display     = hasPush ? 'none'  : 'block';
+  document.getElementById('ifrPushbackField').style.display = hasPush ? 'block' : 'none';
+  document.getElementById('ifrStartAfterPush').style.display= hasPush ? 'block' : 'none';
+  document.getElementById('ifrTaxiLabel').textContent       = 'Request Taxi Time';
+  // Reset same call when pushback is toggled
+  if (!hasPush) {
+    const sc = document.getElementById('f_same_call');
+    if (sc) sc.checked = false;
+  }
+}
+
+function cancelEdit() {
+  editingIndex    = -1;
+  editingCallsign = null;
+  editingType     = null;
+  const btn = document.getElementById('addBtn');
+  btn.textContent = 'ADD TO SCRIPT ▶';
+  btn.style.background = COLOURS[document.getElementById('f_type').value].bg;
+  document.getElementById('cancelEditBtn').style.display = 'none';
+  // Clear form
+  ['f_time','f_time_initial','f_time_start','f_time_taxi',
+   'f_vfr_time_initial','f_vfr_time_taxi','f_vfr_ready_instr',
+   'f_ifr_sn1','f_ifr_sn2','f_ifr_sn3','f_time_pushback','f_time_start_push','f_ifr_sn_push','f_ifr_sn2_push',
+   'f_vfr_sn1','f_vfr_sn2','f_callsign','f_route','f_transponder','f_flevel','f_instructions','f_taxi_instr','f_simnotes'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  for (let i = 0; i < 5; i++) {
+    const lbl = document.getElementById('wp_label_' + i);
+    const tm  = document.getElementById('wp_time_'  + i);
+    if (lbl) lbl.value = '';
+    if (tm)  tm.value  = '';
+  }
+  renderEntries();
+}
+
+// ─── SCRIPT TABLE HTML (shared by View and Print) ─────────────────────────────
+function buildScriptHTML() {
+  const ref   = g('h_ref')   || '—';
+  const date  = g('h_date')  || '—';
+  const title = g('h_title') || '—';
+  const notes = g('h_notes');
+  const wxStation = document.getElementById('w_station');
+  const stationCode = wxStation ? wxStation.value : '';
+  const wx = {
+    station: stationCode, obstime: g('w_obstime'),
+    atis:    document.getElementById('w_atis').value,
+    approach:g('w_approach'), rwy: g('w_rwy'),
+    wind:    g('w_wind'), vis: g('w_vis'), cloud: g('w_cloud'),
+    qnh:     g('w_qnh'), remarks: g('w_remarks'),
+    surface: g('w_surface'), notam: g('w_notam'), wind2: g('w_wind2'),
+  };
+  // ── Column widths: TIME | AIRCRAFT | ROUTE | WP1 | WP2 | WP3 | WP4 | WP5
+  // Based on original dxa: 720 | 1290 | 1590 | 1346×5  (total ~10333)
+
+  // Build populated frequencies string for header display
+  const freqDisplay = scriptFreqs
+    .filter(f => f.name && f.number)
+    .map(f => `<b>${f.name}</b> ${f.number}`)
+    .join('&nbsp;&nbsp;&nbsp;');
+
+  let html = `
+  <table style="width:100%;border-collapse:collapse;margin-bottom:0;font-family:Arial,sans-serif;font-size:9pt;table-layout:fixed">
+    <colgroup>
+      <col style="width:6%">
+      <col style="width:9%">
+      <col style="width:22%">
+      <col style="width:28%">
+      <col style="width:14%">
+      <col style="width:21%">
+    </colgroup>
+    <tr>
+      <td colspan="4" style="border:1px solid #999;background:#BFBFBF;font-weight:bold;font-size:14pt;padding:3px 6px;text-align:right">${ref}</td>
+      <td colspan="2" style="border:1px solid #999;background:#BFBFBF;font-weight:bold;font-size:9pt;padding:3px 6px;text-align:right">${date}</td>
+    </tr>
+    <tr>
+      <td colspan="4" style="border:1px solid #999;font-weight:bold;font-size:9pt;padding:3px 6px">${title}</td>
+      <td colspan="2" style="border:1px solid #999;font-weight:bold;font-size:9pt;padding:3px 6px;color:#FF0000;text-align:right">${freqDisplay}</td>
+    </tr>
+    <tr><td colspan="6" style="border:none;padding:3px"></td></tr>
+    <tr>
+      <td colspan="6" style="border:1px solid #999;background:#BFBFBF;font-weight:bold;font-size:9pt;padding:3px 6px;text-align:center">Weather Information</td>
+    </tr>
+    <tr>
+      <td rowspan="3" style="border:1px solid #999;padding:3px 6px;font-weight:bold;font-size:9pt;vertical-align:middle;text-align:center">
+        <div><b>${wx.station}</b></div>
+        <div><b style="font-size:12pt">${wx.atis}</b></div>
+        <div><b>${wx.obstime}</b></div>
+      </td>
+      <td style="border:1px solid #999;padding:3px 6px;font-weight:bold;font-size:9pt;text-align:center"><b>${wx.approach}</b></td>
+      <td style="border:1px solid #999;padding:3px 6px;font-weight:bold;font-size:9pt"><b>${wx.wind}</b></td>
+      <td style="border:1px solid #999;padding:3px 6px;font-weight:bold;font-size:9pt"><b>${wx.vis}</b></td>
+      <td style="border:1px solid #999;padding:3px 6px"></td>
+      <td style="border:1px solid #999;padding:3px 6px;font-weight:bold;font-size:9pt;text-align:center"><b>${wx.cloud}</b></td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #999;padding:3px 6px;font-weight:bold;font-size:19.5pt;line-height:1;vertical-align:middle;text-align:center"><b>${wx.rwy}</b></td>
+      <td style="border:1px solid #999;padding:3px 6px"></td>
+      <td style="border:1px solid #999;padding:3px 6px"></td>
+      <td style="border:1px solid #999;padding:3px 6px"></td>
+      <td style="border:1px solid #999;padding:3px 6px;font-weight:bold;font-size:19.5pt;line-height:1;vertical-align:middle;text-align:center"><b>${wx.qnh}</b></td>
+    </tr>
+    <tr>
+      <td style="border:1px solid #999;padding:3px 6px;font-weight:bold;font-size:9pt;text-align:center;vertical-align:middle"><b>${wx.surface}</b></td>
+      <td style="border:1px solid #999;padding:3px 6px;font-weight:bold;font-size:9pt"><b>${wx.remarks}</b></td>
+      <td colspan="2" style="border:1px solid #999;padding:3px 6px;font-weight:bold;font-size:9pt"><b>${(wx.notam||'').replace(/\n/g,'<br>')}</b></td>
+      <td style="border:1px solid #999;padding:3px 6px;font-weight:bold;font-size:9pt;text-align:center">${wx.wind2 ? `<b>${wx.wind2}</b>` : ''}</td>
+    </tr>
+  </table>
+
+  ${notes ? `
+  <div style="font-family:Arial,sans-serif;font-size:9pt;padding:6px 4px 4px;color:#000">
+    <div style="font-weight:bold;margin-bottom:4px;color:#cc0000">Notes:</div>
+    <ul style="margin:0;padding-left:18px;color:#cc0000">
+      ${notes.split('\n').filter(l=>l.trim()).map(l=>`<li style="margin-bottom:2px">${l.trim()}</li>`).join('')}
+    </ul>
+  </div>` : ''}
+
+  <table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:9pt;table-layout:fixed;word-break:break-word">
+    <colgroup>
+      <col style="width:7%">
+      <col style="width:13%">
+      <col style="width:11%">
+      <col style="width:11%">
+      <col style="width:11%">
+      <col style="width:11%">
+      <col style="width:11%">
+      <col style="width:25%">
+    </colgroup>
+    <thead>
+      <tr style="background:#C5E0B3">
+        <th style="border:1px solid #999;padding:3px 5px;text-align:left;font-size:8pt">CALL</th>
+        <th style="border:1px solid #999;padding:3px 5px;text-align:left;font-size:8pt">AIRCRAFT</th>
+        <th style="border:1px solid #999;padding:3px 5px;text-align:left;font-size:8pt">ROUTE FL/A</th>
+        <th colspan="5" style="border:1px solid #999;padding:3px 5px;text-align:left;font-size:8pt">INSTRUCTIONS</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  entries.forEach(e => {
+    const col      = COLOURS[e.entryType];
+    const isSpec   = e.entryType === 'coord' || e.entryType === 'ground';
+    const isIFR    = col.bothRows;
+    const darkBg   = col.bg;        // callsign + time cell — always dark
+    const lightBg  = col.light;     // route + waypoints + instructions row
+
+    const cssBg    = darkBg;
+    const routeBg  = isIFR ? lightBg : '#ffffff';
+    const instrBg  = isIFR ? lightBg : '#ffffff';
+
+    // Parse aircraft type parts: e.g. "C172 5676" → type="C172" squawk="5676"
+    const acParts = (e.aircraftType || '').split(' ');
+    const acType  = acParts[0] || '';
+    const acSquawk= acParts.slice(1).join(' ') || '';
+
+    // Waypoints: up to 5 spread across separate columns
+    const wps = (e.waypoints || []).map(w => {
+      if (!w.label) return '';
+      return w.label + (w.time ? ': ' + w.time : '');
+    });
+    // Pad to 5
+    while (wps.length < 5) wps.push('');
+
+    // Speech: output exactly as stored — user types with their own quotes
+    // Only auto-add quotes if there are none already and it's not a keyword
+    const rawInstr = e.instructions || '';
+    const isKeyword = rawInstr === 'Start' || rawInstr === '"Request Taxi"' || rawInstr === '"Ready"';
+    const speech = (rawInstr.startsWith('"') || rawInstr === '' || isKeyword
+      ? rawInstr
+      : `"${rawInstr}"`).replace(/\n/g, '<br>');
+
+    if (isSpec) {
+      // Special entries: full row coloured
+      html += `
+      <tr>
+        <td style="border:1px solid #999;padding:3px 5px;background:${cssBg}"><b>${e.time}</b></td>
+        <td style="border:1px solid #999;padding:3px 5px;background:${cssBg}"><b>${e.callsign}</b></td>
+        <td style="border:1px solid #999;padding:3px 5px;background:${cssBg}"><b>${col.label}</b></td>
+        <td colspan="5" style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${cssBg}"><em>${rawInstr}</em></td>
+      </tr>`;
+    } else {
+      // TOP ROW — thick bottom border only if no instructions row follows
+      const lastRowBorder = (rawInstr || e.simNotes) ? '' : 'border-bottom:2.5px solid #555;';
+      html += `
+      <tr>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${cssBg}"><b>${e.time}</b></td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${cssBg}">
+          <b style="font-size:10.5pt">${e.callsign}</b>${acType ? `<br><span style="font-size:8.5pt">${(acType + (acSquawk ? ' ' + acSquawk : '')).replace(/\n/g,'<br>')}</span>` : ''}
+        </td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg}">${(e.route||'').replace(/\n/g,'<br>')}</td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[0]}</td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[1]}</td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[2]}</td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[3]}</td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[4]}</td>
+      </tr>`;
+
+      // INSTRUCTIONS ROW — thick border on ALL cells in this row
+      if (rawInstr || e.simNotes) {
+        const notesStr = e.simNotes ? ` <i style="color:#cc0000">${e.simNotes}</i>` : '';
+        html += `
+      <tr>
+        <td style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${cssBg}"></td>
+        <td style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${cssBg}"></td>
+        <td style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${instrBg}"></td>
+        <td colspan="5" style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${instrBg};vertical-align:top;overflow-wrap:break-word;word-break:break-word;white-space:normal">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px">
+            <div style="flex:1">
+              <div>${speech}</div>
+              ${e.simNotes ? `<div><i style="color:#cc0000">${e.simNotes}</i></div>` : ''}
+            </div>
+            <div style="white-space:nowrap;align-self:flex-end;font-weight:bold;font-style:italic;font-size:9pt">${e.freq || ''}</div>
+          </div>
+        </td>
+      </tr>`;
+      }
+    }
+  });
+
+  html += `</tbody></table>
+
+  <div style="margin-top:8px;border:2px solid #000;padding:6px 16px;font-family:Arial,sans-serif;display:inline-flex;gap:24px;align-items:center">
+    <div style="text-align:center">
+      <div style="font-size:7pt;letter-spacing:1px;text-transform:uppercase;color:#666">ATIS</div>
+      <div style="font-size:18pt;font-weight:bold;color:#000;line-height:1.1">${wx.atis}</div>
+    </div>
+    <div style="border-left:1px solid #ccc;height:36px"></div>
+    <div style="text-align:center">
+      <div style="font-size:7pt;letter-spacing:1px;text-transform:uppercase;color:#666">QNH</div>
+      <div style="font-size:14pt;font-weight:bold;color:#000">${wx.qnh}</div>
+    </div>
+  </div>`;
+  return html;
+}
+
+// ─── VIEWS ────────────────────────────────────────────────────────────────────
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(name + '-view').classList.add('active');
+  document.querySelectorAll('.tabs .btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+
+  if (name === 'view') {
+    document.getElementById('viewScriptTitle').textContent = g('h_ref') || 'Script';
+    document.getElementById('view-output').innerHTML = buildScriptHTML();
+  }
+  if (name === 'print') {
+    document.getElementById('print-output').innerHTML = buildScriptHTML();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 10 — SAVE / LOAD
+// ───────────────────────────────────────────────────────────────────────────────
+// saveScript() — downloads .json file named after the Exercise Title field.
+// loadScript() — reads .json, populates all fields, switches to View Script.
+// DO NOT EDIT the save/load format — it must stay consistent between versions.
+// ═══════════════════════════════════════════════════════════════════════════════
+function g(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+function saveScript() {
+  const data = {
+    version: 2,
+    header:  { ref:g('h_ref'), date:g('h_date'), title:g('h_title'), notes:g('h_notes') },
+    freqs:   scriptFreqs,
+    weather: {
+      station:g('w_station'), obsTime:g('w_obstime'),
+      atis: document.getElementById('w_atis').value,
+      approach:g('w_approach'), rwy:g('w_rwy'), wind:g('w_wind'),
+      vis:g('w_vis'), cloud:g('w_cloud'), qnh:g('w_qnh'),
+      remarks:g('w_remarks'), surface:g('w_surface'), notam:g('w_notam'), wind2:g('w_wind2'),
+    },
+    entries,
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const name = (g('h_ref')||'sim-script').replace(/[^a-zA-Z0-9\-_]/g,'_') + '.json';
+  a.href=url; a.download=name; a.click();
+  URL.revokeObjectURL(url);
+  showMsg('Saved ✓');
+}
+
+function loadScript(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.freqs && data.freqs.length) { 
+        scriptFreqs = data.freqs.map(f => ({ ...f, active: f.active || !!f.number })); 
+        buildFreqSetup(); 
+      }
+      const h = data.header  || {};
+      const w = data.weather || {};
+      const setV = (id, val) => { const el=document.getElementById(id); if(el && val!==undefined) el.value=val; };
+      setV('h_ref',h.ref); setV('h_date',h.date);
+      setV('h_title',h.title); setV('h_notes',h.notes);
+      if (w.station) document.getElementById('w_station').value = w.station;
+      setV('w_obstime', w.obsTime);
+      setV('w_atis',w.atis); setV('w_approach',w.approach);
+      setV('w_rwy',w.rwy); setV('w_wind',w.wind); setV('w_vis',w.vis);
+      setV('w_cloud',w.cloud); setV('w_qnh',w.qnh);
+      setV('w_remarks',w.remarks); setV('w_surface',w.surface); setV('w_notam',w.notam); setV('w_wind2',w.wind2);
+      entries = data.entries || [];
+      renderEntries();
+      // Re-populate airport dropdowns after loading (they get rebuilt by renderEntries)
+      setTimeout(() => {
+        populateAirportSelect(document.getElementById('wp_label_0'), '');
+        populateAirportSelect(document.getElementById('wp_label_4'), '');
+      }, 50);
+      showMsg('Loaded ✓');
+      // Go straight to View Script after loading
+      showView('view');
+    } catch(err) { showMsg('Error: invalid file'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function showMsg(txt) {
+  const el = document.getElementById('saveMsg');
+  el.textContent = txt; el.style.display = 'inline';
+  setTimeout(() => el.style.display='none', 2500);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 11 — PDF EXPORT
+// ───────────────────────────────────────────────────────────────────────────────
+// Opens the script in a new tab with a print dialog.
+// Computer: choose Save as PDF.  iPad: Share → Save to Files.
+// ═══════════════════════════════════════════════════════════════════════════════
+function exportPDF() {
+  const scriptHTML = buildScriptHTML();
+  const ref = g('h_ref') || 'sim-script';
+
+  const fullHTML = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${ref}</title>
+<style>
+  body { margin: 0; padding: 12px; font-family: Arial, sans-serif; font-size: 9pt; background: white; color: black; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  td, th { border: 1px solid #999; padding: 3px 5px; vertical-align: top; font-size: 9pt; }
+  th { background: #C5E0B3 !important; font-weight: bold; text-align: left; color: #000 !important; }
+
+  @media print {
+    body { margin: 0; padding: 0; }
+    @page { margin: 10mm; size: A4 landscape; }
+  }
+</style>
+</head>
+<body>
+${scriptHTML}
+<script>
+  window.onload = function() { setTimeout(function() { window.print(); }, 400); };
+<\/script>
+</body>
+</html>`;
+
+  // Open in a new tab — on iPad Safari, user taps Share → Save to Files as PDF
+  const blob = new Blob([fullHTML], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  const win  = window.open(url, '_blank');
+  // Set the tab title once loaded so it shows the script name not the blob URL
+  if (win) {
+    win.onload = function() {
+      try { win.document.title = ref; } catch(e) {}
+    };
+  }
+
+  // Show instruction for iPad users
+  showPDFMsg();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+function showPDFMsg() {
+  // Show a brief instruction overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'pdf-msg';
+  overlay.style.cssText = `
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    background: #13161e; border: 1px solid #b388ff; color: #d4dae8;
+    padding: 24px 30px; z-index: 9999; text-align: center;
+    font-family: 'Barlow Condensed', sans-serif; max-width: 340px; width: 90%;
+  `;
+  overlay.innerHTML = `
+    <div style="font-size:32px;margin-bottom:10px">📄</div>
+    <div style="font-size:16px;font-weight:700;letter-spacing:1px;margin-bottom:10px;color:#b388ff">EXPORT PDF</div>
+    <div style="font-size:13px;line-height:1.6;margin-bottom:16px">
+      Your script has opened in a new tab.<br><br>
+      <strong>On iPad:</strong> Tap the Share button → <em>Save to Files</em> → choose PDF<br><br>
+      <strong>On computer:</strong> The print dialog will open — choose <em>Save as PDF</em>
+    </div>
+    <button onclick="document.getElementById('pdf-msg').remove()" style="
+      background:#b388ff;color:#000;border:none;padding:8px 24px;
+      font-family:'Barlow Condensed',sans-serif;font-weight:700;
+      font-size:13px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">
+      Got it
+    </button>
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(() => { if(document.getElementById('pdf-msg')) overlay.remove(); }, 8000);
+}
+</script>
+</body>
+</html>

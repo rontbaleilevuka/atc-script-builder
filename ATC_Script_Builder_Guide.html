@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIM Script Builder — Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:ital,wght@0,400;0,600;1,400&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0f14; --panel: #13161e; --border: #252a36;
+    --text: #d4dae8; --muted: #5a6278; --accent: #00c9ff;
+    --green: #4caf50; --orange: #ff9800; --red: #ef5350; --yellow: #ffeb3b;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--body); min-height: 100vh; }
+  .app { max-width: 920px; margin: 0 auto; padding: 0 20px 80px; }
+
+  .guide-header { padding: 30px 0 20px; border-bottom: 2px solid var(--accent); margin-bottom: 32px; }
+  .guide-header h1 { font-family: var(--sans); font-weight: 900; font-size: 32px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); line-height: 1; }
+  .guide-header .subtitle { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 6px; letter-spacing: 1px; }
+  .guide-header .version { display: inline-block; margin-top: 10px; font-family: var(--mono); font-size: 10px; border: 1px solid var(--border); padding: 3px 10px; color: var(--muted); }
+
+  .toc { background: var(--panel); border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 32px; }
+  .toc-title { font-family: var(--sans); font-weight: 700; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc ol li { counter-increment: toc; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .toc ol li:last-child { border-bottom: none; }
+  .toc ol li::before { content: counter(toc, decimal-leading-zero) ". "; font-family: var(--mono); font-size: 11px; color: var(--accent); margin-right: 8px; }
+  .toc a { color: var(--text); text-decoration: none; font-size: 14px; }
+  .toc a:hover { color: var(--accent); }
+
+  .section { margin-bottom: 40px; }
+  .section-title { font-family: var(--sans); font-weight: 900; font-size: 20px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .section-num { font-family: var(--mono); font-size: 12px; color: var(--muted); min-width: 28px; }
+
+  .card { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--orange); margin-bottom: 14px; overflow: hidden; }
+  .card.tip  { border-left-color: var(--green); }
+  .card.info { border-left-color: var(--accent); }
+  .card.warn { border-left-color: var(--red); }
+  .card.code { border-left-color: #b388ff; }
+
+  .card-header { padding: 10px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+  .card-header:hover { background: #1a1d26; }
+  .card-icon { font-size: 16px; min-width: 22px; }
+  .card-title { font-family: var(--sans); font-weight: 700; font-size: 14px; color: var(--text); flex: 1; }
+  .card-arrow { font-size: 10px; color: var(--muted); transition: transform 0.2s; }
+  .card-arrow.open { transform: rotate(180deg); }
+  .card-body { padding: 0 16px 14px; display: none; }
+  .card-body.open { display: block; }
+  .card-body p { font-size: 14px; line-height: 1.7; color: #b0bac8; margin-bottom: 10px; }
+
+  .steps { margin: 10px 0; }
+  .step { display: flex; gap: 12px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .step:last-child { border-bottom: none; }
+  .step-num { font-family: var(--mono); font-size: 11px; font-weight: bold; color: var(--accent); min-width: 24px; padding-top: 2px; }
+  .step-text { font-size: 13px; line-height: 1.6; color: #b0bac8; flex: 1; }
+  .step-text strong { color: var(--text); }
+  .step-text code { background: #0a0c10; border: 1px solid var(--border); padding: 1px 6px; font-family: var(--mono); font-size: 12px; color: var(--accent); border-radius: 2px; }
+
+  .callout { border: 1px solid var(--border); padding: 12px 16px; margin: 12px 0; font-size: 13px; line-height: 1.6; }
+  .callout.green  { border-color: var(--green);  background: #0d1f0d; color: #a5d6a7; }
+  .callout.red    { border-color: var(--red);    background: #1f0d0d; color: #ef9a9a; }
+  .callout.blue   { border-color: var(--accent); background: #0d1620; color: #90caf9; }
+  .callout.yellow { border-color: var(--yellow); background: #1f1c0d; color: #fff176; }
+  .callout.purple { border-color: #b388ff;       background: #140d1f; color: #ce93d8; }
+  .callout-title  { font-family: var(--sans); font-weight: 700; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
+
+  .colour-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+  .colour-item { display: flex; align-items: center; gap: 10px; background: #0a0c10; border: 1px solid var(--border); padding: 8px 12px; }
+  .colour-swatch-wrap { display: flex; flex-direction: column; width: 40px; border: 1px solid #444; flex-shrink: 0; }
+  .colour-swatch { height: 12px; width: 100%; }
+  .colour-name { font-family: var(--sans); font-weight: 700; font-size: 13px; color: var(--text); }
+  .colour-rule { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  pre { background: #0a0c10; border: 1px solid var(--border); padding: 12px 14px; font-family: var(--mono); font-size: 12px; color: var(--accent); overflow-x: auto; margin: 10px 0; line-height: 1.6; }
+  pre .comment { color: var(--muted); }
+  pre .ok { color: var(--green); }
+  pre .bad { color: var(--red); }
+
+  .contact-box { background: var(--panel); border: 1px solid var(--accent); padding: 20px 24px; margin-top: 40px; text-align: center; }
+  .contact-box h3 { font-family: var(--sans); font-weight: 700; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  .contact-box p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+  @media print {
+    body { background: white; color: black; }
+    .card-body { display: block !important; }
+    .card-arrow { display: none; }
+  }
+  @media (max-width: 600px) { .colour-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="guide-header">
+    <h1>SIM Script Builder</h1>
+    <div class="subtitle">NZ Airways &nbsp;·&nbsp; Total Control &nbsp;·&nbsp; User Guide &amp; Troubleshooting</div>
+    <div class="version">Version 2.2 &nbsp;·&nbsp; June 2026</div>
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#s1">Opening the App</a></li>
+      <li><a href="#s2">Colour Reference</a></li>
+      <li><a href="#s3">Building a Script — Step by Step</a></li>
+      <li><a href="#s4">Frequencies</a></li>
+      <li><a href="#s5">IFR &amp; VFR Departure — 3 Calls</a></li>
+      <li><a href="#s6">Saving, Loading &amp; Editing Scripts</a></li>
+      <li><a href="#s7">iPad Workflow &amp; PDF Annotation</a></li>
+      <li><a href="#s8">Exporting &amp; Printing</a></li>
+      <li><a href="#s9">Common Problems &amp; Fixes</a></li>
+      <li><a href="#s10">Editing the Code Yourself</a></li>
+      <li><a href="#s11">Common Coding Errors &amp; How to Fix Them</a></li>
+      <li><a href="#s12">Quick Reference</a></li>
+    </ol>
+  </div>
+
+  <!-- ── SECTION 1 ── -->
+  <div class="section" id="s1">
+    <div class="section-title"><span class="section-num">01</span> Opening the App</div>
+    <div class="card info">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">💻</span><span class="card-title">On a Computer</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">Locate <strong>ATC_Script_Builder.html</strong> on your computer or download it from the company cloud.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text"><strong>Double-click</strong> the file — it opens in your default browser. Use <strong>Chrome</strong> or <strong>Edge</strong> for best results.</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text">If a security warning appears, click <strong>Allow</strong> or <strong>Run Anyway</strong>.</span></div>
+          <div class="step"><span class="step-num">04</span><span class="step-text">No internet required once the file is on your computer — it runs entirely offline.</span></div>
+        </div>
+        <div class="callout yellow"><div class="callout-title">⚠️ Avoid Internet Explorer</div>The app will not work in Internet Explorer. Use Chrome or Edge only.</div>
+      </div>
+    </div>
+    <div class="card info">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">📱</span><span class="card-title">On iPad</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">Download <strong>ATC_Script_Builder.html</strong> from the company cloud to your iPad Files app.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">Tap the file in Files — it opens in <strong>Safari</strong> automatically.</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text">To load a script tap <strong>📂 Load</strong> and select the <strong>.json</strong> file from Files.</span></div>
+        </div>
+        <div class="callout yellow"><div class="callout-title">⚠️ Use Safari on iPad</div>Chrome on iPad may block local file access. Always use Safari.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 2 ── -->
+  <div class="section" id="s2">
+    <div class="section-title"><span class="section-num">02</span> Colour Reference</div>
+    <p style="font-size:14px;color:#b0bac8;margin-bottom:16px;line-height:1.7">VFR entries: only the <strong>callsign/time cell</strong> is coloured — instructions row stays white. IFR entries: <strong>both rows</strong> are coloured, with the callsign cell a darker shade and the instructions row lighter.</p>
+    <div class="colour-grid">
+      <div class="colour-item"><div class="colour-swatch-wrap"><div class="colour-swatch" style="background:#8DB3E2"></div><div class="colour-swatch" style="background:#fff;border-top:1px solid #ccc"></div></div><div><div class="colour-name">VFR Departure</div><div class="colour-rule">Callsign only · #8DB3E2</div></div></div>
+      <div class="colour-item"><div class="colour-swatch-wrap"><div class="colour-swatch" style="background:#8DB3E2"></div><div class="colour-swatch" style="background:#C6D9F1;border-top:1px solid #ccc"></div></div><div><div class="colour-name">IFR Departure</div><div class="colour-rule">Both rows · #8DB3E2 / #C6D9F1</div></div></div>
+      <div class="colour-item"><div class="colour-swatch-wrap"><div class="colour-swatch" style="background:#E5B8B7"></div><div class="colour-swatch" style="background:#fff;border-top:1px solid #ccc"></div></div><div><div class="colour-name">VFR Arrival</div><div class="colour-rule">Callsign only · #E5B8B7</div></div></div>
+      <div class="colour-item"><div class="colour-swatch-wrap"><div class="colour-swatch" style="background:#E5B8B7"></div><div class="colour-swatch" style="background:#F2DBDB;border-top:1px solid #ccc"></div></div><div><div class="colour-name">IFR Arrival</div><div class="colour-rule">Both rows · #E5B8B7 / #F2DBDB</div></div></div>
+      <div class="colour-item"><div class="colour-swatch-wrap"><div class="colour-swatch" style="background:#C2D69B"></div><div class="colour-swatch" style="background:#fff;border-top:1px solid #ccc"></div></div><div><div class="colour-name">VFR Transit / T&amp;G</div><div class="colour-rule">Callsign only · #C2D69B</div></div></div>
+      <div class="colour-item"><div class="colour-swatch-wrap"><div class="colour-swatch" style="background:#C2D69B"></div><div class="colour-swatch" style="background:#D8EAC0;border-top:1px solid #ccc"></div></div><div><div class="colour-name">IFR Transit / T&amp;G</div><div class="colour-rule">Both rows · #C2D69B / #D8EAC0</div></div></div>
+      <div class="colour-item"><div class="colour-swatch-wrap"><div class="colour-swatch" style="background:#9D95FF"></div><div class="colour-swatch" style="background:#C5C1FF;border-top:1px solid #ccc"></div></div><div><div class="colour-name">Ground Vehicle / Tug</div><div class="colour-rule">Both rows · #9D95FF / #C5C1FF</div></div></div>
+      <div class="colour-item"><div class="colour-swatch-wrap"><div class="colour-swatch" style="background:#FFFF00"></div><div class="colour-swatch" style="background:#FFFF00;border-top:1px solid #ccc"></div></div><div><div class="colour-name">Co-Ord / X-NOTE</div><div class="colour-rule">Both rows · #FFFF00</div></div></div>
+    </div>
+    <div class="callout blue" style="margin-top:12px"><div class="callout-title">💡 Sim Notes</div>Operator instructions always appear in <strong style="color:#cc0000">red italic</strong> below the pilot speech — easy to distinguish at a glance.</div>
+  </div>
+
+  <!-- ── SECTION 3 ── -->
+  <div class="section" id="s3">
+    <div class="section-title"><span class="section-num">03</span> Building a Script</div>
+    <div class="card tip">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">📋</span><span class="card-title">Step-by-step walkthrough</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text"><strong>Script Header</strong> — fill in Exercise Title, Date, Exercise Ref and Notes. Notes field: each line becomes a red bullet point in the script.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text"><strong>Frequencies</strong> — toggle on the positions you need (TWR, GND, DEL etc.) and type the frequency number. These populate the frequency dropdown on every entry.</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text"><strong>Weather</strong> — fill in Station (dropdown), Obs Time, ATIS, Approach Type, Runway, Wind, Visibility, Temp/Dew Point, QNH, Cloud, Surface, NOTAM and 2000ft Wind.</span></div>
+          <div class="step"><span class="step-num">04</span><span class="step-text"><strong>New Aircraft Entry</strong> — select Entry Type and Frequency at the top. Fill in Callsign, select Aircraft Type from the dropdown (194 aircraft), enter Transponder and Flight Level separately, then Route, Times, Waypoints, Pilot Speech and Sim Notes.</span></div>
+          <div class="step"><span class="step-num">05</span><span class="step-text">Click <strong>ADD TO SCRIPT ▶</strong> — entry auto-sorts by time. Repeat for each aircraft.</span></div>
+          <div class="step"><span class="step-num">06</span><span class="step-text">Use <strong>↑ ↓</strong> arrows to manually reorder. Click <strong>✏️</strong> to edit an entry. Click <strong>✕</strong> to delete.</span></div>
+          <div class="step"><span class="step-num">07</span><span class="step-text">Click <strong>💾 Save</strong> to download the <code>.json</code> file. Upload to the company cloud.</span></div>
+        </div>
+        <div class="callout blue"><div class="callout-title">💡 Keyboard Navigation</div>Press <strong>Enter</strong> or <strong>↓</strong> to move to the next field. Press <strong>↑</strong> to go back. In multi-line fields (instructions, route, aircraft type) press <strong>↓</strong> to move to the next field.</div>
+      </div>
+    </div>
+    <div class="card tip">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">✏️</span><span class="card-title">Editing an existing entry</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">Click the <strong>✏️</strong> button on any entry row in the builder.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">The form fills with that entry's data. For IFR/VFR departures, <em>all rows</em> for that callsign load together so you can add a missing time or change any call.</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text">Make your changes. The ADD button turns orange and says <strong>UPDATE ENTRY ✔</strong>.</span></div>
+          <div class="step"><span class="step-num">04</span><span class="step-text">Click <strong>UPDATE ENTRY ✔</strong> — changes save and the script re-sorts by time automatically.</span></div>
+          <div class="step"><span class="step-num">05</span><span class="step-text">Click <strong>✕ Cancel Edit</strong> to discard changes.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 4 ── -->
+  <div class="section" id="s4">
+    <div class="section-title"><span class="section-num">04</span> Frequencies</div>
+    <div class="card info">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">📻</span><span class="card-title">Setting up frequencies</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">In the Script Header, find the <strong>Frequencies</strong> section with pill buttons: TWR · GND · DEL · APP · DEP · INFO · APRON.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text"><strong>Click a pill</strong> to toggle it on — it turns blue and a number input appears.</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text">Type the frequency number (e.g. 118.3). It immediately appears in all entry frequency dropdowns.</span></div>
+          <div class="step"><span class="step-num">04</span><span class="step-text">Only frequencies with a number entered show in the view script header and in the entry dropdown.</span></div>
+          <div class="step"><span class="step-num">05</span><span class="step-text">Click the pill again to turn it off and remove it from the dropdowns.</span></div>
+        </div>
+        <div class="callout green"><div class="callout-title">✅ Set once per script</div>Define your frequencies at the start and every entry dropdown is pre-populated. Frequencies save and load with the .json file.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 5 ── -->
+  <div class="section" id="s5">
+    <div class="section-title"><span class="section-num">05</span> IFR &amp; VFR Departure — 3 Calls</div>
+    <div class="card tip">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">⚡</span><span class="card-title">IFR Departure — Initial / Start / Request Taxi</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">①</span><span class="step-text"><strong>Initial Call Time</strong> — enter the time and the full pilot speech in the Pilot Speech field. Add sim notes below the time if needed.</span></div>
+          <div class="step"><span class="step-num">②</span><span class="step-text"><strong>Start Time</strong> — generates a "Start" row automatically. Leave blank to skip. Add sim notes if needed.</span></div>
+          <div class="step"><span class="step-num">③</span><span class="step-text"><strong>Request Taxi Time</strong> — generates "Request Taxi" (overrideable in the taxi speech field). Add sim notes if needed.</span></div>
+        </div>
+        <div class="callout blue"><div class="callout-title">✈️ Requires Pushback?</div>Tick the <strong>Requires Pushback</strong> checkbox to add Pushback and Start time fields.<br><br><strong>Same call?</strong> Tick the <strong>Same call</strong> checkbox next to Pushback Time to generate a single <em>"Request Start and Pushback"</em> row instead of two separate rows. You can also skip the Initial Call Time entirely and go straight to any other time if the flight is already in progress.</div>
+      </div>
+    </div>
+    <div class="card tip">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">⚡</span><span class="card-title">VFR Departure — Initial / Request Taxi</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">①</span><span class="step-text"><strong>Initial Call Time</strong> — full speech in the Pilot Speech field (e.g. "4 on board for Motiti, H1013, request Taxi"). Add sim notes if needed.</span></div>
+          <div class="step"><span class="step-num">②</span><span class="step-text"><strong>Request Taxi Time</strong> — generates "Request Taxi" automatically. Add sim notes if needed.</span></div>
+        </div>
+        <div class="callout blue"><div class="callout-title">💡 All times optional</div>Leave any time blank to skip that row entirely.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 6 ── -->
+  <div class="section" id="s6">
+    <div class="section-title"><span class="section-num">06</span> Saving, Loading &amp; Editing</div>
+    <div class="card tip">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">💾</span><span class="card-title">Saving a script</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">Click <strong>💾 Save</strong> — a <code>.json</code> file downloads named after the Exercise Title field.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">Upload the <code>.json</code> to the company cloud for pilots to access.</span></div>
+        </div>
+        <div class="callout red"><div class="callout-title">⛔ No auto-save</div>The app does NOT auto-save. Always click Save before closing the tab — unsaved work will be lost.</div>
+      </div>
+    </div>
+    <div class="card tip">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">📂</span><span class="card-title">Loading a script</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">Download the <code>.json</code> from the company cloud.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">Click <strong>📂 Load</strong> and select the file — the entire script loads and opens in <strong>View Script</strong> mode.</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text">To edit, click <strong>✏️ Edit Script</strong> to return to the builder.</span></div>
+        </div>
+        <div class="callout yellow"><div class="callout-title">⚠️ Wrong file?</div>Only <code>.json</code> files saved by this app will load. Do not try to load a PDF, Word doc or other format.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 7 ── -->
+  <div class="section" id="s7">
+    <div class="section-title"><span class="section-num">07</span> iPad Workflow &amp; PDF Annotation</div>
+    <div class="card info">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">📱</span><span class="card-title">Annotating with Apple Pencil</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">Download the <code>.json</code> from the company cloud to your iPad.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">Open the app in Safari, tap <strong>📂 Load</strong> and select the script.</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text">Tap <strong>📄 Export PDF</strong> — a new tab opens with the clean script.</span></div>
+          <div class="step"><span class="step-num">04</span><span class="step-text">Tap the <strong>Share button</strong> → <strong>Save to Files</strong> → saves as PDF.</span></div>
+          <div class="step"><span class="step-num">05</span><span class="step-text">Open in <strong>GoodNotes</strong> or <strong>Notability</strong> and annotate with Apple Pencil.</span></div>
+        </div>
+        <div class="callout green"><div class="callout-title">✅ Best iPad workflow</div>Keep the .html file saved to your iPad permanently. Download a fresh .json before each simulation, load it, export PDF, annotate.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 8 ── -->
+  <div class="section" id="s8">
+    <div class="section-title"><span class="section-num">08</span> Exporting &amp; Printing</div>
+    <div class="card info">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🖨</span><span class="card-title">Printing with colours</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">Click the <strong>Print</strong> tab then <strong>🖨 Print</strong>.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">In the print dialog, enable <strong>Background graphics</strong> — otherwise row colours won't print.</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text">Set orientation to <strong>Landscape</strong> for best fit.</span></div>
+        </div>
+        <div class="callout yellow"><div class="callout-title">⚠️ Colours not printing?</div>Chrome: More settings → enable "Background graphics". Edge: More settings → enable "Background colors and images".</div>
+      </div>
+    </div>
+    <div class="card info">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">📄</span><span class="card-title">Exporting as PDF</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">Click <strong>📄 Export PDF</strong> from View Script or Print.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text"><strong>Computer:</strong> In the print dialog choose <strong>Save as PDF</strong>.</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text"><strong>iPad:</strong> Share button → <strong>Save to Files</strong>.</span></div>
+        </div>
+        <div class="callout yellow"><div class="callout-title">⚠️ PDF export opens blank tab?</div>Your browser is blocking pop-ups. Look for the blocked pop-up icon in the address bar and click Allow.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 9 ── -->
+  <div class="section" id="s9">
+    <div class="section-title"><span class="section-num">09</span> Common Problems &amp; Fixes</div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">App won't open / blank screen</span><span class="card-arrow">▼</span></div>
+      <div class="card-body"><div class="steps">
+        <div class="step"><span class="step-num">01</span><span class="step-text">Right-click the file → <strong>Open with</strong> → Chrome or Edge.</span></div>
+        <div class="step"><span class="step-num">02</span><span class="step-text">If a security warning shows, click <strong>Allow</strong> or <strong>Run Anyway</strong>.</span></div>
+        <div class="step"><span class="step-num">03</span><span class="step-text">Press <strong>F5</strong> to refresh.</span></div>
+      </div></div>
+    </div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">Entries disappeared after closing the tab</span><span class="card-arrow">▼</span></div>
+      <div class="card-body"><div class="callout red"><div class="callout-title">⛔ No auto-save</div>The app does not auto-save. Always click 💾 Save before closing. There is no way to recover unsaved work.</div></div>
+    </div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">Load button shows error / invalid file</span><span class="card-arrow">▼</span></div>
+      <div class="card-body"><div class="steps">
+        <div class="step"><span class="step-num">01</span><span class="step-text">Make sure you are loading a <code>.json</code> file saved by this app — not a PDF or Word doc.</span></div>
+        <div class="step"><span class="step-num">02</span><span class="step-text">Try downloading the file from the cloud again — it may be partially downloaded.</span></div>
+      </div></div>
+    </div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">Entries not sorting in the right order</span><span class="card-arrow">▼</span></div>
+      <div class="card-body"><div class="steps">
+        <div class="step"><span class="step-num">01</span><span class="step-text">Make sure times are entered as 4-digit numbers — e.g. <code>2003</code> not <code>20:03</code>.</span></div>
+        <div class="step"><span class="step-num">02</span><span class="step-text">Use the <strong>↑ ↓</strong> arrows to manually adjust order if needed.</span></div>
+      </div></div>
+    </div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">Frequency dropdown is empty</span><span class="card-arrow">▼</span></div>
+      <div class="card-body"><div class="steps">
+        <div class="step"><span class="step-num">01</span><span class="step-text">Go to the Script Header and toggle on the frequency positions you need (TWR, GND etc.).</span></div>
+        <div class="step"><span class="step-num">02</span><span class="step-text">Type a number next to each active position — only frequencies <em>with a number</em> appear in the dropdown.</span></div>
+      </div></div>
+    </div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">ATIS / QNH not showing in footer</span><span class="card-arrow">▼</span></div>
+      <div class="card-body"><p>The ATIS and QNH footer at the bottom of the script only shows if you have filled in the ATIS and QNH fields in the Weather Information section of the builder.</p></div>
+    </div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">Fonts look plain / different</span><span class="card-arrow">▼</span></div>
+      <div class="card-body"><p>The app uses Google Fonts which require internet to load. Offline the app falls back to system fonts — everything still works correctly, it just looks slightly different.</p></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 10 ── -->
+  <div class="section" id="s10">
+    <div class="section-title"><span class="section-num">10</span> Editing the Code Yourself</div>
+
+    <div class="card code">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🔧</span><span class="card-title">How to open and edit the file</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text"><strong>Always back up first</strong> — copy the file and rename it (e.g. <code>ATC_Script_Builder_backup.html</code>) before making any changes.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">Right-click <code>ATC_Script_Builder.html</code> → <strong>Open with</strong> → <strong>Notepad</strong> (Windows) or <strong>TextEdit</strong> (Mac).</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text">Press <strong>Ctrl+F</strong> (Windows) or <strong>Cmd+F</strong> (Mac) to search for the section you want to edit.</span></div>
+          <div class="step"><span class="step-num">04</span><span class="step-text">Make your change, then <strong>Save</strong> (Ctrl+S). Refresh the browser to see the result.</span></div>
+        </div>
+        <div class="callout purple"><div class="callout-title">🔍 Section markers</div>Search for these labels to jump to the right place:<br><br>
+          <code>SECTION 1 — COLOUR CODES</code> → change entry type colours<br>
+          <code>SECTION 2 — ENTRY TYPES</code> → rename entry type labels<br>
+          <code>SECTION 3 — AIRPORT LIST</code> → add/remove/rename airports<br>
+          <code>SECTION 4 — DEFAULT WEATHER</code> → change default weather values<br>
+          <code>SECTION 9 — FREQUENCY MANAGEMENT</code> → change default frequency positions
+        </div>
+      </div>
+    </div>
+
+    <div class="card code">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">✈️</span><span class="card-title">Adding or changing an airport</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <p>Search for <code>SECTION 3 — AIRPORT LIST</code> to find the airport list. Each entry looks like this:</p>
+        <pre>{ code: 'NZTG', name: 'NZTG — Tauranga' },</pre>
+        <p><strong>To add:</strong> copy any line, change the code and name, paste it in the right group.</p>
+        <p><strong>To remove:</strong> delete the whole line.</p>
+        <p><strong>To rename:</strong> change the text after the — inside the name field.</p>
+        <div class="callout yellow"><div class="callout-title">⚠️ Apostrophes in names</div>If the name contains an apostrophe (e.g. Hawke's Bay) you must write it as <code>Hawke\'s Bay</code> with a backslash, otherwise the file will break.</div>
+      </div>
+    </div>
+
+    <div class="card code">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">✈️</span><span class="card-title">Adding a new aircraft to the dropdown</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <p>Search for <code>SECTION 4 — AIRCRAFT LIST</code> to find the aircraft list. Each entry is just the model name in single quotes followed by a comma:</p>
+        <pre>'DH8C','DH8D','DH82',</pre>
+        <p><strong>To add:</strong> find the right alphabetical position and insert the new model name:</p>
+        <pre><span class="ok">'DH8C','DH8D','DH82','DHC3',  ← correct</span></pre>
+        <p><strong>To remove:</strong> delete the entry including its comma.</p>
+        <div class="callout yellow"><div class="callout-title">⚠️ Keep the comma</div>Every entry must end with a comma. Missing commas will break the app.</div>
+      </div>
+    </div>
+
+    <div class="card code">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🎨</span><span class="card-title">Changing a colour</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <p>Search for <code>SECTION 1 — COLOUR CODES</code>. You'll see entries like:</p>
+        <pre>ifr_dep: { bg: '#8DB3E2', light: '#C6D9F1', ... },</pre>
+        <p><strong>bg</strong> = the darker shade (callsign/time cell). <strong>light</strong> = the lighter shade (instructions row).</p>
+        <p>Change the hex colour code — e.g. replace <code>'#8DB3E2'</code> with <code>'#aabbcc'</code>. Keep the quotes and the hash symbol.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 11 ── -->
+  <div class="section" id="s11">
+    <div class="section-title"><span class="section-num">11</span> Common Coding Errors &amp; How to Fix Them</div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">App goes blank after editing the file</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <p>This means there is a syntax error in the JavaScript. The most common causes:</p>
+        <div class="steps">
+          <div class="step"><span class="step-num">1</span><span class="step-text"><strong>Missing comma</strong> after an airport entry. Every line in the airport list must end with a comma:<br><pre><span class="ok">{ code: 'NZTG', name: 'NZTG — Tauranga' },  ← correct</span><span class="bad">{ code: 'NZTG', name: 'NZTG — Tauranga' }   ← missing comma, will break</span></pre></span></div>
+          <div class="step"><span class="step-num">2</span><span class="step-text"><strong>Unescaped apostrophe</strong> in a name. If a name has an apostrophe you must escape it:<br><pre><span class="ok">name: 'Hawke\'s Bay'   ← correct</span><span class="bad">name: 'Hawke's Bay'   ← will break</span></pre></span></div>
+          <div class="step"><span class="step-num">3</span><span class="step-text"><strong>Mismatched quotes</strong> — make sure every opening <code>'</code> has a closing <code>'</code>.</span></div>
+          <div class="step"><span class="step-num">4</span><span class="step-text"><strong>Accidental deletion</strong> of a <code>];</code> or <code>};</code> that closes a section.</span></div>
+        </div>
+        <div class="callout green"><div class="callout-title">✅ Fix: restore from backup</div>If the app goes blank, close the file without saving and restore from your backup copy. Always keep a backup before editing.</div>
+      </div>
+    </div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">New airport not showing in dropdown</span><span class="card-arrow">▼</span></div>
+      <div class="card-body"><div class="steps">
+        <div class="step"><span class="step-num">01</span><span class="step-text">Check the line ends with a comma: <code>{ code: 'NZXX', name: 'NZXX — Name' },</code></span></div>
+        <div class="step"><span class="step-num">02</span><span class="step-text">Check the code and name are inside single quotes <code>'</code> — not double quotes <code>"</code>.</span></div>
+        <div class="step"><span class="step-num">03</span><span class="step-text">Save the file and <strong>hard refresh</strong> the browser: <strong>Ctrl+Shift+R</strong> (Windows) or <strong>Cmd+Shift+R</strong> (Mac).</span></div>
+      </div></div>
+    </div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">Changes not showing after saving the file</span><span class="card-arrow">▼</span></div>
+      <div class="card-body"><div class="steps">
+        <div class="step"><span class="step-num">01</span><span class="step-text">The browser may be showing a cached version. Press <strong>Ctrl+Shift+R</strong> (Windows) or <strong>Cmd+Shift+R</strong> (Mac) to force a full refresh.</span></div>
+        <div class="step"><span class="step-num">02</span><span class="step-text">Make sure you saved the correct file — check you edited <code>ATC_Script_Builder.html</code> and not the backup copy.</span></div>
+      </div></div>
+    </div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">Uncaught SyntaxError in browser console</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <p>If you want to find exactly where the error is:</p>
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">Press <strong>F12</strong> to open browser Developer Tools.</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">Click the <strong>Console</strong> tab — the error will show with a line number.</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text">Go to that line number in Notepad and look for a missing comma, quote or bracket near that area.</span></div>
+          <div class="step"><span class="step-num">04</span><span class="step-text">If you can't find it, restore from your backup and try the edit again more carefully.</span></div>
+        </div>
+        <div class="callout blue"><div class="callout-title">💡 Line numbers in Notepad</div>In Notepad on Windows: Format menu → check <strong>Word Wrap is OFF</strong>, then look at the bottom of the window — it shows the current line number as you click around.</div>
+      </div>
+    </div>
+
+    <div class="card warn">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">🚨</span><span class="card-title">Colour changed but looks the same</span><span class="card-arrow">▼</span></div>
+      <div class="card-body"><div class="steps">
+        <div class="step"><span class="step-num">01</span><span class="step-text">Make sure you changed both <code>bg</code> and <code>light</code> if you want both rows to change.</span></div>
+        <div class="step"><span class="step-num">02</span><span class="step-text">Hard refresh the browser: <strong>Ctrl+Shift+R</strong>.</span></div>
+        <div class="step"><span class="step-num">03</span><span class="step-text">Check the hex code starts with <code>#</code> and is 6 characters, e.g. <code>#8DB3E2</code> — not <code>8DB3E2</code> or <code>#8db</code>.</span></div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 12 ── -->
+  <div class="section" id="s12">
+    <div class="section-title"><span class="section-num">12</span> Quick Reference</div>
+    <div class="card info">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">⚡</span><span class="card-title">Keyboard shortcuts</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">↓ / Enter</span><span class="step-text">Move to next field</span></div>
+          <div class="step"><span class="step-num">↑</span><span class="step-text">Move to previous field</span></div>
+          <div class="step"><span class="step-num">Enter (textarea)</span><span class="step-text">New line within the field — use ↓ to move to next field</span></div>
+          <div class="step"><span class="step-num">Ctrl+Shift+R</span><span class="step-text">Hard refresh browser (force reload after file edits)</span></div>
+          <div class="step"><span class="step-num">F12</span><span class="step-text">Open browser Developer Tools (for debugging)</span></div>
+          <div class="step"><span class="step-num">Ctrl+F</span><span class="step-text">Find in file (Notepad) — use to navigate to code sections</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card info">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">📋</span><span class="card-title">Instructor workflow</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">Build script → 💾 Save .json → Upload to company cloud</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">To update: Load .json → ✏️ Edit Script → make changes → 💾 Save → re-upload</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card info">
+      <div class="card-header" onclick="toggle(this)"><span class="card-icon">📋</span><span class="card-title">Pilot workflow (iPad)</span><span class="card-arrow">▼</span></div>
+      <div class="card-body">
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">Download .json from cloud → 📂 Load in app → View Script</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">📄 Export PDF → Share → Save to Files → Open in GoodNotes/Notability → Annotate</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="contact-box">
+    <h3>Need Further Help?</h3>
+    <p>This guide covers all known issues with the SIM Script Builder.<br>For new features or issues contact your sim coordinator.<br><br>
+    <strong style="color:var(--accent)">NZ Airways · Total Control · ATC Training · Version 2.2</strong></p>
+  </div>
+
+</div>
+<script>
+function toggle(header) {
+  const body  = header.nextElementSibling;
+  const arrow = header.querySelector('.card-arrow');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+}
+window.onbeforeprint = function() {
+  document.querySelectorAll('.card-body').forEach(b => b.classList.add('open'));
+};
+</script>
+</body>
+</html>
