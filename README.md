@@ -15,7 +15,7 @@ A standalone web app for building, saving, loading and printing ATC simulation s
 ## Features
 - Colour-coded ATC scripts matching the original Word document format
 - IFR and VFR departure 3-call system with pushback, same-call and skip options
-- Aircraft type dropdown (194 sim aircraft), separate transponder and flight level fields
+- Aircraft type dropdown (194 sim aircraft) and separate transponder field
 - Full NZ, Australian and Pacific airport dropdowns including hospital helipads
 - Frequency management — toggle on TWR / GND / DEL / APP / DEP / INFO / APRON
 - Save scripts as `.json` and load them back instantly
@@ -70,4 +70,4 @@ When a new version is provided:
 
 ---
 
-*NZ Airways · Total Control · ATC Training · Version 2.1*
+*NZ Airways · Total Control · ATC Training · Version 2.3*

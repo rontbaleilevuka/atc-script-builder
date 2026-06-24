@@ -249,7 +249,7 @@
         <!-- ROW 2: Callsign + Route side by side -->
         <div class="row-2">
           <div class="field"><span class="field-label">Callsign</span><input id="f_callsign" placeholder="e.g. ANZ801L or ZK-ZAQ"></div>
-          <div class="field"><span class="field-label">Route / Description &nbsp;<span style="font-size:9px;opacity:0.6;text-transform:none;letter-spacing:0">— press Enter for a new line</span></span><textarea id="f_route" rows="3" placeholder="e.g. TGCH3 TODAN3P GOBUK Trans"></textarea></div>
+          <div class="field"><span class="field-label">Route / FL / Description &nbsp;<span style="font-size:9px;opacity:0.6;text-transform:none;letter-spacing:0">— press Enter for a new line</span></span><textarea id="f_route" rows="3" placeholder="e.g. TGCH3 TODAN3P GOBUK Trans"></textarea></div>
         </div>
 
         <!-- ROW 3: Aircraft Type + Transponder + Flight Level -->
@@ -261,10 +261,6 @@
           <div class="field">
             <span class="field-label">Transponder</span>
             <input id="f_transponder" placeholder="e.g. 5142" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')">
-          </div>
-          <div class="field">
-            <span class="field-label">Flight Level</span>
-            <input id="f_flevel" placeholder="e.g. F200, A050">
           </div>
         </div>
 
@@ -822,7 +818,7 @@ function getNavOrder() {
   const isVFR = type === 'vfr_dep';
   const isSpecial = type === 'coord' || type === 'ground';
 
-  const base = ['f_type', 'f_freq', 'f_callsign', 'f_actype', 'f_transponder', 'f_flevel', 'f_route'];
+  const base = ['f_type', 'f_freq', 'f_callsign', 'f_actype', 'f_transponder', 'f_route'];
 
   if (isIFR) {
     base.push('f_time_initial','f_ifr_sn1','f_time_start','f_ifr_sn2','f_time_taxi','f_ifr_sn3');
@@ -950,9 +946,8 @@ function addEntry() {
   const callsign     = callsignRaw;
   const actype       = document.getElementById('f_actype').value.trim();
   const transponder  = document.getElementById('f_transponder').value.trim();
-  const flevel       = document.getElementById('f_flevel').value.trim();
-  // Combine into aircraftType for storage/rendering: actype + transponder on separate lines
-  const aircraftType = [actype, transponder, flevel].filter(Boolean).join('\n');
+  // Combine into aircraftType for storage/rendering
+  const aircraftType = [actype, transponder].filter(Boolean).join('\n');
   const isSpecial = type === 'coord' || type === 'ground';
   const isIFRDep  = type === 'ifr_dep';
   const isVFRDep  = type === 'vfr_dep';
@@ -1055,7 +1050,7 @@ function addEntry() {
   ['f_time','f_time_initial','f_time_start','f_time_taxi',
    'f_vfr_time_initial','f_vfr_time_taxi','f_vfr_ready_instr',
    'f_ifr_sn1','f_ifr_sn2','f_ifr_sn3','f_time_pushback','f_time_start_push','f_ifr_sn_push','f_ifr_sn2_push',
-   'f_vfr_sn1','f_vfr_sn2','f_callsign','f_route','f_transponder','f_flevel','f_instructions','f_taxi_instr','f_simnotes'].forEach(id => {
+   'f_vfr_sn1','f_vfr_sn2','f_callsign','f_route','f_transponder','f_instructions','f_taxi_instr','f_simnotes'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   for (let i = 0; i < 5; i++) {
@@ -1140,7 +1135,7 @@ function renderEntries() {
       <div style="display:flex;align-items:center;flex-wrap:wrap;background:${topRowBg};color:#000;min-height:32px">
         <div class="sr-time" style="padding:5px 8px;font-family:var(--mono);font-size:13px;font-weight:bold;min-width:44px;background:${csBg}">${e.time}</div>
         <div style="padding:5px 8px;font-family:var(--mono);font-size:13px;font-weight:bold;background:${csBg};min-width:140px">
-          ${e.callsign}${e.aircraftType ? `<span style="font-size:10px;font-weight:normal;opacity:0.75"><br>${e.aircraftType.replace(/\n/g,'<br>')}</span>` : ''}
+          ${e.callsign}${e.aircraftType ? `<span style="font-size:10px;font-weight:normal;opacity:0.75"><br>${e.aircraftType.split('\n').slice(0,2).join('<br>')}</span>` : ''}
         </div>
         <div class="sr-route" style="padding:5px 8px;font-family:var(--mono);font-size:11px;flex:1;background:${topRowBg}">${(e.route||'').replace(/\n/g,'<br>')}</div>
         ${e.freq ? `<div style="font-family:var(--mono);font-size:12px;font-weight:bold;padding:5px 8px;margin-left:auto;background:${topRowBg}">${e.freq}</div>` : ''}
@@ -1197,7 +1192,6 @@ function editEntry(i) {
   const actypeSel = document.getElementById('f_actype');
   if (actypeSel) actypeSel.value = acParts[0] || '';
   sv('f_transponder', acParts[1] || '');
-  sv('f_flevel',      acParts[2] || '');
   sv('f_route',        e.route);
   sv('f_instructions', e.instructions);
   sv('f_simnotes',     e.simNotes);
@@ -1299,7 +1293,7 @@ function cancelEdit() {
   ['f_time','f_time_initial','f_time_start','f_time_taxi',
    'f_vfr_time_initial','f_vfr_time_taxi','f_vfr_ready_instr',
    'f_ifr_sn1','f_ifr_sn2','f_ifr_sn3','f_time_pushback','f_time_start_push','f_ifr_sn_push','f_ifr_sn2_push',
-   'f_vfr_sn1','f_vfr_sn2','f_callsign','f_route','f_transponder','f_flevel','f_instructions','f_taxi_instr','f_simnotes'].forEach(id => {
+   'f_vfr_sn1','f_vfr_sn2','f_callsign','f_route','f_transponder','f_instructions','f_taxi_instr','f_simnotes'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
   for (let i = 0; i < 5; i++) {
@@ -1425,10 +1419,12 @@ function buildScriptHTML() {
     const routeBg  = isIFR ? lightBg : '#ffffff';
     const instrBg  = isIFR ? lightBg : '#ffffff';
 
-    // Parse aircraft type parts: e.g. "C172 5676" → type="C172" squawk="5676"
-    const acParts = (e.aircraftType || '').split(' ');
-    const acType  = acParts[0] || '';
-    const acSquawk= acParts.slice(1).join(' ') || '';
+    // Split stored aircraftType back into parts: actype, transponder, flevel
+    const acParts  = (e.aircraftType || '').split('\n');
+    const acType   = acParts[0] || '';
+    const acSquawk = acParts[1] || '';
+    // Route cell
+    const routeDisplay = (e.route||'').replace(/\n/g,'<br>');
 
     // Waypoints: up to 5 spread across separate columns
     const wps = (e.waypoints || []).map(w => {
@@ -1461,10 +1457,10 @@ function buildScriptHTML() {
       html += `
       <tr>
         <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${cssBg}"><b>${e.time}</b></td>
-        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${cssBg}">
-          <b style="font-size:10.5pt">${e.callsign}</b>${acType ? `<br><span style="font-size:8.5pt">${(acType + (acSquawk ? ' ' + acSquawk : '')).replace(/\n/g,'<br>')}</span>` : ''}
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${cssBg};text-align:center;vertical-align:middle">
+          <b style="font-size:10.5pt">${e.callsign}</b>${acType ? `<br><span style="font-size:8.5pt">${acType}${acSquawk ? '<br>' + acSquawk : ''}</span>` : ''}
         </td>
-        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg}">${(e.route||'').replace(/\n/g,'<br>')}</td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg}">${routeDisplay}</td>
         <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[0]}</td>
         <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[1]}</td>
         <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${routeBg};font-size:8.5pt">${wps[2]}</td>
