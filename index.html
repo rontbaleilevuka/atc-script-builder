@@ -156,6 +156,7 @@
       <button class="btn btn-orange" onclick="document.getElementById('fileInput').click()">📂 Load</button>
       <input type="file" id="fileInput" accept=".json" style="display:none" onchange="loadScript(event)">
       <button class="btn btn-purple" onclick="window.open('https://rontbaleilevuka.github.io/atc-script-builder/ATC_Script_Builder_Guide.html','_blank')">📖 Guide</button>
+      <button class="btn" style="background:#2d6a4f;color:#fff" onclick="exportWord()">📝 Export Word</button>
       <span id="saveMsg" class="save-msg" style="display:none"></span>
       <div class="tabs">
         <button class="btn btn-accent active" id="tab-build" onclick="showView('build')">Build</button>
@@ -1447,7 +1448,7 @@ function buildScriptHTML() {
       // Special entries: full row coloured
       html += `
       <tr>
-        <td style="border:1px solid #999;padding:3px 5px;background:${cssBg};text-align:center;vertical-align:middle"><b>${e.time}</b></td>
+        <td style="border:1px solid #999;padding:3px 5px;background:${cssBg};text-align:center !important;vertical-align:middle !important"><b>${e.time}</b></td>
         <td style="border:1px solid #999;padding:3px 5px;background:${cssBg}"><b>${e.callsign}</b></td>
         <td style="border:1px solid #999;padding:3px 5px;background:${cssBg}"><b>${col.label}</b></td>
         <td colspan="5" style="border:1px solid #999;border-bottom:2.5px solid #555;padding:3px 5px;background:${cssBg}"><em>${rawInstr}</em></td>
@@ -1457,7 +1458,7 @@ function buildScriptHTML() {
       const lastRowBorder = (rawInstr || e.simNotes) ? '' : 'border-bottom:2.5px solid #555;';
       html += `
       <tr>
-        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${cssBg};text-align:center;vertical-align:middle"><b>${e.time}</b></td>
+        <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${cssBg};text-align:center !important;vertical-align:middle !important"><b>${e.time}</b></td>
         <td style="border:1px solid #999;${lastRowBorder}padding:3px 5px;background:${cssBg};text-align:center;vertical-align:middle">
           <b style="font-size:10.5pt">${e.callsign}</b>${acType ? `<br><span style="font-size:8.5pt">${acType}${acSquawk ? '<br>' + acSquawk : ''}</span>` : ''}
         </td>
@@ -1577,7 +1578,16 @@ function loadScript(event) {
       setV('w_rwy',w.rwy); setV('w_wind',w.wind); setV('w_vis',w.vis);
       setV('w_cloud',w.cloud); setV('w_qnh',w.qnh);
       setV('w_remarks',w.remarks); setV('w_surface',w.surface); setV('w_notam',w.notam); setV('w_wind2',w.wind2);
-      entries = data.entries || [];
+      entries = (data.entries || []).map(e => {
+        // ── MIGRATION: older versions stored aircraftType as "DH8C 5142" (space-separated)
+        // Newer version stores as "DH8C\n5142" (newline-separated actype + transponder)
+        // If aircraftType has no newline but has a space, split on first space
+        if (e.aircraftType && !e.aircraftType.includes('\n') && e.aircraftType.includes(' ')) {
+          const parts = e.aircraftType.split(' ');
+          e.aircraftType = parts[0] + '\n' + parts.slice(1).join(' ');
+        }
+        return e;
+      });
       renderEntries();
       // Re-populate airport dropdowns after loading (they get rebuilt by renderEntries)
       setTimeout(() => {
@@ -1600,7 +1610,347 @@ function showMsg(txt) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SECTION 11 — PDF EXPORT
+// SECTION 12 — WORD EXPORT
+// ───────────────────────────────────────────────────────────────────────────────
+// Generates a fully formatted .docx file matching the original script layout.
+// Colours, borders, fonts and column widths all match the view script exactly.
+// ═══════════════════════════════════════════════════════════════════════════════
+function exportWord() {
+  // Load docx library — try local file first, then CDN
+  if (typeof docx === 'undefined') {
+    const script = document.createElement('script');
+    // Try local docx.js first (for offline/restricted environments)
+    script.src = 'docx.js';
+    script.onload = () => exportWord();
+    script.onerror = () => {
+      // Fall back to CDN
+      const cdn = document.createElement('script');
+      cdn.src = 'https://unpkg.com/docx@8.5.0/build/index.js';
+      cdn.onload = () => exportWord();
+      cdn.onerror = () => alert('Could not load Word export library.\n\nMake sure docx.js is in the same folder as this file, or check your internet connection.');
+      document.head.appendChild(cdn);
+    };
+    document.head.appendChild(script);
+    return;
+  }
+
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+          AlignmentType, PageOrientation, BorderStyle, WidthType, ShadingType,
+          VerticalAlign } = docx;
+
+  const ref   = g('h_ref')   || 'SIM Script';
+  const date  = g('h_date')  || '';
+  const title = g('h_title') || '';
+  const notes = g('h_notes') || '';
+
+  const wxStation = document.getElementById('w_station');
+  const wx = {
+    station:  wxStation ? wxStation.value : '',
+    atis:     document.getElementById('w_atis').value,
+    obstime:  g('w_obstime'), approach: g('w_approach'),
+    rwy:      g('w_rwy'),     wind:     g('w_wind'),
+    vis:      g('w_vis'),     cloud:    g('w_cloud'),
+    qnh:      g('w_qnh'),     remarks:  g('w_remarks'),
+    surface:  g('w_surface'), notam:    g('w_notam'),
+    wind2:    g('w_wind2'),
+  };
+
+  // Freq display
+  const freqStr = scriptFreqs.filter(f => f.active && f.number)
+    .map(f => `${f.name} ${f.number}`).join('   ');
+
+  // Table width for A4 landscape with 0.5" margins
+  const TW = 14400;
+  const colWidths = [
+    Math.round(TW * 0.07),   // CALL
+    Math.round(TW * 0.13),   // AIRCRAFT
+    Math.round(TW * 0.13),   // ROUTE FL/A
+    Math.round(TW * 0.134),  // WP1
+    Math.round(TW * 0.134),  // WP2
+    Math.round(TW * 0.134),  // WP3
+    Math.round(TW * 0.134),  // WP4
+    Math.round(TW * 0.134),  // WP5
+  ];
+  const HDRW = Math.round(TW * 0.5); // Header table half width
+
+  // Border helpers
+  const bdr  = (size=4, color='999999') => ({ style: BorderStyle.SINGLE, size, color });
+  const noBdr = { style: BorderStyle.NIL, size: 0, color: 'FFFFFF' };
+  const allBdr  = { top: bdr(), bottom: bdr(), left: bdr(), right: bdr() };
+  const thickBtm = { top: bdr(), left: bdr(), right: bdr(), bottom: bdr(16, '555555') };
+  const noBdrAll = { top: noBdr, bottom: noBdr, left: noBdr, right: noBdr };
+
+  function shd(hex) { return { fill: hex.replace('#',''), type: ShadingType.CLEAR }; }
+
+  function mkCell(texts, options = {}) {
+    const { bg = 'FFFFFF', colspan = 1, thick = false, align = AlignmentType.LEFT,
+            vAlign = VerticalAlign.TOP, width = 0 } = options;
+    const paras = Array.isArray(texts) ? texts : [texts];
+    return new TableCell({
+      columnSpan: colspan,
+      borders: thick ? thickBtm : allBdr,
+      shading: shd(bg),
+      margins: { top: 60, bottom: 60, left: 80, right: 80 },
+      verticalAlign: vAlign,
+      ...(width ? { width: { size: width, type: WidthType.DXA } } : {}),
+      children: paras.map(p => {
+        if (p instanceof Paragraph) return p;
+        const { text='', bold=false, size=18, italic=false, color='000000' } = typeof p === 'string' ? { text: p } : p;
+        return new Paragraph({
+          alignment: align,
+          children: [new TextRun({ text, bold, size, italic, color, font: 'Arial' })]
+        });
+      })
+    });
+  }
+
+  // ── HEADER TABLE ────────────────────────────────────────────────────────────
+  const headerTable = new Table({
+    width: { size: TW, type: WidthType.DXA },
+    columnWidths: [Math.round(TW*0.67), Math.round(TW*0.33)],
+    rows: [
+      new TableRow({ children: [
+        mkCell({ text: ref, bold: true, size: 28 }, { bg: 'BFBFBF', width: Math.round(TW*0.67) }),
+        mkCell({ text: date, bold: true, size: 18 }, { bg: 'BFBFBF', align: AlignmentType.RIGHT, width: Math.round(TW*0.33) }),
+      ]}),
+      new TableRow({ children: [
+        mkCell({ text: title, bold: true, size: 18 }, { width: Math.round(TW*0.67) }),
+        mkCell({ text: freqStr, bold: true, size: 18, color: 'FF0000' }, { align: AlignmentType.RIGHT, width: Math.round(TW*0.33) }),
+      ]}),
+    ]
+  });
+
+  // ── WEATHER TABLE ───────────────────────────────────────────────────────────
+  const WTW = TW;
+  const wcols = [
+    Math.round(WTW*0.09), Math.round(WTW*0.15), Math.round(WTW*0.22),
+    Math.round(WTW*0.27), Math.round(WTW*0.14), Math.round(WTW*0.13)
+  ];
+  const weatherTable = new Table({
+    width: { size: WTW, type: WidthType.DXA },
+    columnWidths: wcols,
+    rows: [
+      // Weather Information header
+      new TableRow({ children: [
+        new TableCell({
+          columnSpan: 6, borders: allBdr, shading: shd('BFBFBF'),
+          margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER,
+            children: [new TextRun({ text: 'Weather Information', bold: true, size: 18, font: 'Arial' })] })]
+        })
+      ]}),
+      // Row 1: station/atis/obstime | approach | wind | vis | (empty) | cloud
+      new TableRow({ children: [
+        new TableCell({
+          rowSpan: 3, borders: allBdr, shading: shd('FFFFFF'),
+          margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          verticalAlign: VerticalAlign.CENTER,
+          children: [
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: wx.station, bold: true, size: 18, font: 'Arial' })] }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: wx.atis, bold: true, size: 32, font: 'Arial' })] }),
+            new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: wx.obstime, bold: true, size: 18, font: 'Arial' })] }),
+          ]
+        }),
+        new TableCell({ borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: wx.approach, bold: true, size: 18, font: 'Arial' })] })] }),
+        new TableCell({ borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ children: [new TextRun({ text: wx.wind, bold: true, size: 18, font: 'Arial' })] })] }),
+        new TableCell({ borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ children: [new TextRun({ text: wx.vis, bold: true, size: 18, font: 'Arial' })] })] }),
+        new TableCell({ borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ children: [] })] }),
+        new TableCell({ borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: wx.cloud, bold: true, size: 18, font: 'Arial' })] })] }),
+      ]}),
+      // Row 2: (spanned) | rwy (large) | remarks | (empty) | (empty) | qnh (large)
+      new TableRow({ children: [
+        new TableCell({ rowSpan: 2, borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          verticalAlign: VerticalAlign.CENTER,
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: wx.rwy, bold: true, size: 52, font: 'Arial' })] })] }),
+        new TableCell({ borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ children: [new TextRun({ text: wx.remarks, bold: true, size: 18, font: 'Arial' })] })] }),
+        new TableCell({ borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ children: [] })] }),
+        new TableCell({ borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ children: [] })] }),
+        new TableCell({ borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          verticalAlign: VerticalAlign.CENTER,
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: wx.qnh, bold: true, size: 32, font: 'Arial' })] })] }),
+      ]}),
+      // Row 3: (spanned) | surface | notam(colspan2) | wind2
+      new TableRow({ children: [
+        new TableCell({ borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          verticalAlign: VerticalAlign.CENTER,
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: wx.surface, bold: true, size: 18, font: 'Arial' })] })] }),
+        new TableCell({ columnSpan: 2, borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ children: [new TextRun({ text: wx.notam, bold: true, size: 18, font: 'Arial' })] })] }),
+        new TableCell({ borders: allBdr, shading: shd('FFFFFF'), margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ children: [new TextRun({ text: wx.wind2, bold: true, size: 18, font: 'Arial' })] })] }),
+      ]}),
+    ]
+  });
+
+  // ── NOTES ───────────────────────────────────────────────────────────────────
+  const notesParas = [];
+  if (notes) {
+    notesParas.push(new Paragraph({ children: [new TextRun({ text: 'Notes:', bold: true, size: 18, font: 'Arial', color: 'CC0000' })] }));
+    notes.split('\n').filter(l => l.trim()).forEach(line => {
+      notesParas.push(new Paragraph({
+        bullet: { level: 0 },
+        children: [new TextRun({ text: line.trim(), size: 18, font: 'Arial', color: 'CC0000' })]
+      }));
+    });
+  }
+
+  // ── SCRIPT TABLE ────────────────────────────────────────────────────────────
+  const scriptRows = [];
+
+  // Header row
+  scriptRows.push(new TableRow({
+    tableHeader: true,
+    children: [
+      mkCell({ text: 'CALL',         bold: true, size: 16 }, { bg: 'C5E0B3' }),
+      mkCell({ text: 'AIRCRAFT',     bold: true, size: 16 }, { bg: 'C5E0B3' }),
+      mkCell({ text: 'ROUTE FL/A',   bold: true, size: 16 }, { bg: 'C5E0B3' }),
+      mkCell({ text: 'INSTRUCTIONS', bold: true, size: 16 }, { bg: 'C5E0B3', colspan: 5 }),
+    ]
+  }));
+
+  entries.forEach(e => {
+    const colDef = COLOURS[e.entryType] || { bg: '#FFFFFF', light: '#FFFFFF', bothRows: false };
+    const isSpec = e.entryType === 'coord' || e.entryType === 'ground';
+    const isIFR  = colDef.bothRows;
+    const darkBg = colDef.bg.replace('#','');
+    const lightBg = colDef.light.replace('#','');
+    const routeBg = isIFR ? lightBg : 'FFFFFF';
+    const instrBg = isIFR ? lightBg : 'FFFFFF';
+
+    const acParts  = (e.aircraftType || '').split('\n');
+    const acType   = acParts[0] || '';
+    const acSquawk = acParts[1] || '';
+    const wps = (e.waypoints || []).map(w => w.label ? (w.label + (w.time ? ': ' + w.time : '')) : '');
+    while (wps.length < 5) wps.push('');
+
+    const rawInstr = e.instructions || '';
+    const speech = rawInstr.startsWith('"') || rawInstr === 'Start' || rawInstr === '' ? rawInstr : `"${rawInstr}"`;
+
+    if (isSpec) {
+      scriptRows.push(new TableRow({
+        children: [
+          mkCell({ text: e.time, bold: true, size: 18 }, { bg: darkBg, align: AlignmentType.CENTER, thick: true }),
+          mkCell({ text: e.callsign, bold: true, size: 18 }, { bg: darkBg, align: AlignmentType.CENTER, thick: true }),
+          mkCell({ text: colDef.label, bold: true, size: 18 }, { bg: darkBg, thick: true }),
+          mkCell({ text: rawInstr, italic: true, size: 18 }, { bg: darkBg, colspan: 5, thick: true }),
+        ]
+      }));
+    } else {
+      // TOP ROW
+      const acParas = [
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: e.callsign, bold: true, size: 21, font: 'Arial' })] }),
+        ...(acType ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: acType, size: 17, font: 'Arial' })] })] : []),
+        ...(acSquawk ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: acSquawk, size: 17, font: 'Arial' })] })] : []),
+      ];
+
+      const hasInstr = rawInstr || e.simNotes;
+      const topThick = !hasInstr;
+
+      scriptRows.push(new TableRow({
+        children: [
+          mkCell({ text: e.time, bold: true, size: 18 }, { bg: darkBg, align: AlignmentType.CENTER, thick: topThick }),
+          new TableCell({
+            borders: topThick ? thickBtm : allBdr,
+            shading: shd(darkBg),
+            margins: { top: 60, bottom: 60, left: 80, right: 80 },
+            verticalAlign: VerticalAlign.CENTER,
+            children: acParas,
+          }),
+          mkCell({ text: (e.route||'').replace(/\n/g, '\n'), size: 18 }, { bg: routeBg, thick: topThick }),
+          ...wps.map(w => mkCell({ text: w, size: 16 }, { bg: routeBg, thick: topThick })),
+        ]
+      }));
+
+      // INSTRUCTIONS ROW
+      if (hasInstr) {
+        const instrChildren = [
+          new TextRun({ text: speech, size: 18, font: 'Arial' }),
+          ...(e.simNotes ? [new TextRun({ text: '\n' + e.simNotes, size: 17, italic: true, color: 'CC0000', font: 'Arial' })] : []),
+        ];
+        scriptRows.push(new TableRow({
+          children: [
+            mkCell('', { bg: darkBg, thick: true }),
+            mkCell('', { bg: darkBg, thick: true }),
+            mkCell('', { bg: instrBg, thick: true }),
+            new TableCell({
+              columnSpan: 5,
+              borders: thickBtm,
+              shading: shd(instrBg),
+              margins: { top: 60, bottom: 60, left: 80, right: 80 },
+              children: [new Paragraph({
+                children: instrChildren,
+                ...(e.freq ? { tabStops: [{ type: 'right', position: colWidths[3]+colWidths[4]+colWidths[5]+colWidths[6]+colWidths[7]-160 }] } : {})
+              })]
+            }),
+          ]
+        }));
+      }
+    }
+  });
+
+  const scriptTable = new Table({
+    width: { size: TW, type: WidthType.DXA },
+    columnWidths: colWidths,
+    rows: scriptRows,
+  });
+
+  // ── BUILD DOCUMENT ───────────────────────────────────────────────────────────
+  const children = [
+    headerTable,
+    new Paragraph({ children: [] }),
+    weatherTable,
+    new Paragraph({ children: [] }),
+    ...notesParas,
+    ...(notesParas.length ? [new Paragraph({ children: [] })] : []),
+    scriptTable,
+    new Paragraph({ children: [] }),
+    // ATIS/QNH footer
+    new Paragraph({ children: [
+      new TextRun({ text: `ATIS: ${wx.atis}   QNH: ${wx.qnh}`, bold: true, size: 20, font: 'Arial' })
+    ]}),
+  ];
+
+  const doc = new Document({
+    numbering: {
+      config: [{
+        reference: 'notes-bullets',
+        levels: [{ level: 0, format: 'bullet', text: '•', alignment: AlignmentType.LEFT,
+          style: { paragraph: { indent: { left: 720, hanging: 360 } } } }]
+      }]
+    },
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 12240, height: 15840, orientation: PageOrientation.LANDSCAPE },
+          margin: { top: 720, right: 720, bottom: 720, left: 720 }
+        }
+      },
+      children
+    }]
+  });
+
+  // Fix notes paragraphs to use numbering
+  if (notes) {
+    // Already handled via bullet: { level: 0 } — docx library handles this
+  }
+
+  Packer.toBlob(doc).then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (g('h_ref') || 'sim-script').replace(/[^a-zA-Z0-9\-_]/g, '_') + '.docx';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+}
 // ───────────────────────────────────────────────────────────────────────────────
 // Opens the script in a new tab with a print dialog.
 // Computer: choose Save as PDF.  iPad: Share → Save to Files.
