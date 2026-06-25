@@ -1636,7 +1636,7 @@ function exportWord() {
 
   const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
           AlignmentType, PageOrientation, BorderStyle, WidthType, ShadingType,
-          VerticalAlign } = docx;
+          VerticalAlign, TabStopType } = docx;
 
   const ref   = g('h_ref')   || 'SIM Script';
   const date  = g('h_date')  || '';
@@ -1680,7 +1680,7 @@ function exportWord() {
   const thickBtm = { top: bdr(), left: bdr(), right: bdr(), bottom: bdr(16, '555555') };
   const noBdrAll = { top: noBdr, bottom: noBdr, left: noBdr, right: noBdr };
 
-  function shd(hex) { return { fill: hex.replace('#',''), type: ShadingType.CLEAR }; }
+  function shd(hex) { return { fill: hex.replace('#',''), type: ShadingType.CLEAR, color: 'auto' }; }
 
   function mkCell(texts, options = {}) {
     const { bg = 'FFFFFF', colspan = 1, thick = false, align = AlignmentType.LEFT,
@@ -1899,16 +1899,22 @@ function exportWord() {
           new TextRun({ text: '\n', size: 18, font: 'Arial' }),
           new TextRun({ text: e.simNotes, size: 17, italic: true, color: 'CC0000', font: 'Arial' }),
         ] : []),
+        ...(e.freq ? [
+          new TextRun({ text: '\t' + e.freq, size: 17, bold: true, italic: true, font: 'Arial' }),
+        ] : []),
       ];
+      const instrWidth = colWidths[3]+colWidths[4]+colWidths[5]+colWidths[6]+colWidths[7];
       scriptRows.push(new TableRow({
         children: [
-          // Only 5 cells — the first 3 columns are covered by rowSpan from top row
           new TableCell({
             columnSpan: 5,
             borders: thickBtm,
             shading: shd(instrBg),
             margins: { top: 60, bottom: 60, left: 80, right: 80 },
-            children: [new Paragraph({ children: instrChildren })]
+            children: [new Paragraph({
+              tabStops: e.freq ? [{ type: TabStopType.RIGHT, position: instrWidth - 160 }] : [],
+              children: instrChildren
+            })]
           }),
         ]
       }));
