@@ -1830,6 +1830,7 @@ function exportWord() {
 
     const rawInstr = e.instructions || '';
     const speech = rawInstr.startsWith('"') || rawInstr === 'Start' || rawInstr === '' ? rawInstr : `"${rawInstr}"`;
+    const hasInstr = rawInstr || e.simNotes;
 
     if (isSpec) {
       scriptRows.push(new TableRow({
@@ -1840,56 +1841,79 @@ function exportWord() {
           mkCell({ text: rawInstr, italic: true, size: 18 }, { bg: darkBg, colspan: 5, thick: true }),
         ]
       }));
-    } else {
-      // TOP ROW
-      const acParas = [
-        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: e.callsign, bold: true, size: 21, font: 'Arial' })] }),
-        ...(acType ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: acType, size: 17, font: 'Arial' })] })] : []),
-        ...(acSquawk ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: acSquawk, size: 17, font: 'Arial' })] })] : []),
+      return;
+    }
+
+    // TOP ROW — CALL, AIRCRAFT, ROUTE FL/A use vMerge=restart if there's an instructions row
+    const acParas = [
+      new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: e.callsign, bold: true, size: 21, font: 'Arial' })] }),
+      ...(acType   ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: acType,   size: 17, font: 'Arial' })] })] : []),
+      ...(acSquawk ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: acSquawk, size: 17, font: 'Arial' })] })] : []),
+    ];
+
+    const routeParas = (e.route||'').split('\n').map(line =>
+      new Paragraph({ children: [new TextRun({ text: line, size: 18, font: 'Arial' })] })
+    );
+
+    // Helper: make a vMerge restart cell
+    function vMergeCell(paras, options = {}) {
+      const { bg = 'FFFFFF', colspan = 1, thick = false, vAlign = VerticalAlign.TOP } = options;
+      return new TableCell({
+        columnSpan: colspan,
+        borders: thick ? thickBtm : allBdr,
+        shading: shd(bg),
+        margins: { top: 60, bottom: 60, left: 80, right: 80 },
+        verticalAlign: vAlign,
+        rowSpan: hasInstr ? 2 : 1,
+        children: Array.isArray(paras) ? paras : [paras],
+      });
+    }
+
+    // Helper: make a vMerge continue cell (empty, just continues the merge)
+    function vMergeContinueCell(options = {}) {
+      const { bg = 'FFFFFF', thick = false } = options;
+      return new TableCell({
+        borders: thick ? thickBtm : allBdr,
+        shading: shd(bg),
+        margins: { top: 60, bottom: 60, left: 80, right: 80 },
+        children: [new Paragraph({ children: [] })],
+      });
+    }
+
+    scriptRows.push(new TableRow({
+      children: [
+        vMergeCell([new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: e.time, bold: true, size: 18, font: 'Arial' })] })],
+          { bg: darkBg, vAlign: VerticalAlign.CENTER }),
+        vMergeCell(acParas, { bg: darkBg, vAlign: VerticalAlign.CENTER }),
+        vMergeCell(routeParas, { bg: routeBg }),
+        // Waypoint cells — no merge, just top row
+        ...wps.map(w => mkCell({ text: w, size: 16 }, { bg: routeBg, thick: !hasInstr })),
+      ]
+    }));
+
+    // INSTRUCTIONS ROW — first 3 cells are vMerge continuations, last 5 span instructions
+    if (hasInstr) {
+      const instrChildren = [
+        new TextRun({ text: speech, size: 18, font: 'Arial' }),
+        ...(e.simNotes ? [
+          new TextRun({ text: '\n', size: 18, font: 'Arial' }),
+          new TextRun({ text: e.simNotes, size: 17, italic: true, color: 'CC0000', font: 'Arial' }),
+        ] : []),
       ];
-
-      const hasInstr = rawInstr || e.simNotes;
-      const topThick = !hasInstr;
-
       scriptRows.push(new TableRow({
         children: [
-          mkCell({ text: e.time, bold: true, size: 18 }, { bg: darkBg, align: AlignmentType.CENTER, thick: topThick }),
+          vMergeContinueCell({ bg: darkBg, thick: true }),
+          vMergeContinueCell({ bg: darkBg, thick: true }),
+          vMergeContinueCell({ bg: routeBg, thick: true }),
           new TableCell({
-            borders: topThick ? thickBtm : allBdr,
-            shading: shd(darkBg),
+            columnSpan: 5,
+            borders: thickBtm,
+            shading: shd(instrBg),
             margins: { top: 60, bottom: 60, left: 80, right: 80 },
-            verticalAlign: VerticalAlign.CENTER,
-            children: acParas,
+            children: [new Paragraph({ children: instrChildren })]
           }),
-          mkCell({ text: (e.route||'').replace(/\n/g, '\n'), size: 18 }, { bg: routeBg, thick: topThick }),
-          ...wps.map(w => mkCell({ text: w, size: 16 }, { bg: routeBg, thick: topThick })),
         ]
       }));
-
-      // INSTRUCTIONS ROW
-      if (hasInstr) {
-        const instrChildren = [
-          new TextRun({ text: speech, size: 18, font: 'Arial' }),
-          ...(e.simNotes ? [new TextRun({ text: '\n' + e.simNotes, size: 17, italic: true, color: 'CC0000', font: 'Arial' })] : []),
-        ];
-        scriptRows.push(new TableRow({
-          children: [
-            mkCell('', { bg: darkBg, thick: true }),
-            mkCell('', { bg: darkBg, thick: true }),
-            mkCell('', { bg: instrBg, thick: true }),
-            new TableCell({
-              columnSpan: 5,
-              borders: thickBtm,
-              shading: shd(instrBg),
-              margins: { top: 60, bottom: 60, left: 80, right: 80 },
-              children: [new Paragraph({
-                children: instrChildren,
-                ...(e.freq ? { tabStops: [{ type: 'right', position: colWidths[3]+colWidths[4]+colWidths[5]+colWidths[6]+colWidths[7]-160 }] } : {})
-              })]
-            }),
-          ]
-        }));
-      }
     }
   });
 
