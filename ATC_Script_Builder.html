@@ -1888,30 +1888,41 @@ function exportWord() {
           { bg: darkBg, vAlign: VerticalAlign.CENTER }),
         vMergeCell(acParas, { bg: darkBg, vAlign: VerticalAlign.CENTER }),
         vMergeCell(routeParas, { bg: routeBg }),
-        ...wps.map(w => mkCell({ text: w, size: 16 }, { bg: routeBg, thick: !hasInstr })),
+        ...wps.map(w => new TableCell({
+          borders: hasInstr ? allBdr : { top: bdr(4), left: bdr(4), right: bdr(4), bottom: bdr(16,'555555') },
+          shading: shd(routeBg),
+          margins: { top: 60, bottom: 60, left: 80, right: 80 },
+          children: [new Paragraph({ children: [new TextRun({ text: w, size: 16, font: 'Arial' })] })]
+        })),
       ]
     }));
 
     // INSTRUCTIONS ROW — only 5 cells (first 3 are merged up into top row)
     if (hasInstr) {
       const instrWidth = colWidths[3]+colWidths[4]+colWidths[5]+colWidths[6]+colWidths[7];
-      const instrChildren = [
-        new TextRun({ text: speech, size: 18, font: 'Arial' }),
-        ...(e.simNotes ? [
-          new TextRun({ text: '\n', size: 18, font: 'Arial' }),
-          new TextRun({ text: e.simNotes, size: 17, italic: true, color: 'CC0000', font: 'Arial' }),
-        ] : []),
-        ...(e.freq ? [
-          new TextRun({ text: '\t' + e.freq, size: 17, bold: true, italic: true, font: 'Arial' }),
-        ] : []),
-      ];
 
-      // Thick border on ALL cells in this row including merged ones
-      const thickBtmMerged = { 
-        top: { style: BorderStyle.NIL, size: 0, color: 'FFFFFF' }, 
-        left: bdr(4), right: bdr(4), 
-        bottom: bdr(16, '555555') 
-      };
+      // Build instruction paragraphs properly
+      const instrParas = [];
+
+      // Para 1: speech text
+      instrParas.push(new Paragraph({
+        children: [new TextRun({ text: speech, size: 18, font: 'Arial' })]
+      }));
+
+      // Para 2: sim notes on own line (red italic)
+      if (e.simNotes) {
+        instrParas.push(new Paragraph({
+          children: [new TextRun({ text: e.simNotes, size: 17, italic: true, color: 'CC0000', font: 'Arial' })]
+        }));
+      }
+
+      // Para 3: frequency right-aligned
+      if (e.freq) {
+        instrParas.push(new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          children: [new TextRun({ text: e.freq, size: 17, bold: true, italic: true, font: 'Arial' })]
+        }));
+      }
 
       scriptRows.push(new TableRow({
         children: [
@@ -1920,10 +1931,7 @@ function exportWord() {
             borders: { top: { style: BorderStyle.NIL, size: 0, color: 'FFFFFF' }, left: bdr(4), right: bdr(4), bottom: bdr(16, '555555') },
             shading: shd(instrBg),
             margins: { top: 60, bottom: 60, left: 80, right: 80 },
-            children: [new Paragraph({
-              tabStops: e.freq ? [{ type: TabStopType.RIGHT, position: instrWidth - 160 }] : [],
-              children: instrChildren
-            })]
+            children: instrParas
           }),
         ]
       }));
@@ -1933,6 +1941,14 @@ function exportWord() {
   const scriptTable = new Table({
     width: { size: TW, type: WidthType.DXA },
     columnWidths: colWidths,
+    borders: {
+      top:           { style: BorderStyle.SINGLE, size: 4,  color: '999999' },
+      bottom:        { style: BorderStyle.SINGLE, size: 4,  color: '999999' },
+      left:          { style: BorderStyle.SINGLE, size: 4,  color: '999999' },
+      right:         { style: BorderStyle.SINGLE, size: 4,  color: '999999' },
+      insideH:       { style: BorderStyle.SINGLE, size: 4,  color: '999999' },
+      insideV:       { style: BorderStyle.SINGLE, size: 4,  color: '999999' },
+    },
     rows: scriptRows,
   });
 
