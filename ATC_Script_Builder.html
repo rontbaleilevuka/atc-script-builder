@@ -1891,7 +1891,7 @@ function exportWord() {
       ]
     }));
 
-    // INSTRUCTIONS ROW — first 3 cells are vMerge continuations, last 5 span instructions
+    // INSTRUCTIONS ROW — only 5 cells (first 3 are merged up into top row)
     if (hasInstr) {
       const instrChildren = [
         new TextRun({ text: speech, size: 18, font: 'Arial' }),
@@ -1902,9 +1902,7 @@ function exportWord() {
       ];
       scriptRows.push(new TableRow({
         children: [
-          vMergeContinueCell({ bg: darkBg, thick: true }),
-          vMergeContinueCell({ bg: darkBg, thick: true }),
-          vMergeContinueCell({ bg: routeBg, thick: true }),
+          // Only 5 cells — the first 3 columns are covered by rowSpan from top row
           new TableCell({
             columnSpan: 5,
             borders: thickBtm,
