@@ -1857,10 +1857,12 @@ function exportWord() {
 
     // Helper: make a vMerge restart cell
     function vMergeCell(paras, options = {}) {
-      const { bg = 'FFFFFF', colspan = 1, thick = false, vAlign = VerticalAlign.TOP } = options;
+      const { bg = 'FFFFFF', colspan = 1, vAlign = VerticalAlign.TOP } = options;
+      // When no instructions row follows, add thick bottom border directly
+      const cellBorders = hasInstr ? allBdr : thickBtm;
       return new TableCell({
         columnSpan: colspan,
-        borders: thick ? thickBtm : allBdr,
+        borders: cellBorders,
         shading: shd(bg),
         margins: { top: 60, bottom: 60, left: 80, right: 80 },
         verticalAlign: vAlign,
@@ -1886,13 +1888,13 @@ function exportWord() {
           { bg: darkBg, vAlign: VerticalAlign.CENTER }),
         vMergeCell(acParas, { bg: darkBg, vAlign: VerticalAlign.CENTER }),
         vMergeCell(routeParas, { bg: routeBg }),
-        // Waypoint cells — no merge, just top row
         ...wps.map(w => mkCell({ text: w, size: 16 }, { bg: routeBg, thick: !hasInstr })),
       ]
     }));
 
     // INSTRUCTIONS ROW — only 5 cells (first 3 are merged up into top row)
     if (hasInstr) {
+      const instrWidth = colWidths[3]+colWidths[4]+colWidths[5]+colWidths[6]+colWidths[7];
       const instrChildren = [
         new TextRun({ text: speech, size: 18, font: 'Arial' }),
         ...(e.simNotes ? [
@@ -1903,12 +1905,19 @@ function exportWord() {
           new TextRun({ text: '\t' + e.freq, size: 17, bold: true, italic: true, font: 'Arial' }),
         ] : []),
       ];
-      const instrWidth = colWidths[3]+colWidths[4]+colWidths[5]+colWidths[6]+colWidths[7];
+
+      // Thick border on ALL cells in this row including merged ones
+      const thickBtmMerged = { 
+        top: { style: BorderStyle.NIL, size: 0, color: 'FFFFFF' }, 
+        left: bdr(4), right: bdr(4), 
+        bottom: bdr(16, '555555') 
+      };
+
       scriptRows.push(new TableRow({
         children: [
           new TableCell({
             columnSpan: 5,
-            borders: thickBtm,
+            borders: { top: { style: BorderStyle.NIL, size: 0, color: 'FFFFFF' }, left: bdr(4), right: bdr(4), bottom: bdr(16, '555555') },
             shading: shd(instrBg),
             margins: { top: 60, bottom: 60, left: 80, right: 80 },
             children: [new Paragraph({
