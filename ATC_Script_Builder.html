@@ -1659,17 +1659,17 @@ function exportWord() {
   const freqStr = scriptFreqs.filter(f => f.active && f.number)
     .map(f => `${f.name} ${f.number}`).join('   ');
 
-  // Table width for A4 landscape with 0.5" margins
-  const TW = 14400;
+  // Page: A4 Landscape, margins matching original (approx 720 DXA = 0.5 inch)
+  const TW = 11057;
   const colWidths = [
-    Math.round(TW * 0.07),   // CALL
-    Math.round(TW * 0.13),   // AIRCRAFT
-    Math.round(TW * 0.13),   // ROUTE FL/A
-    Math.round(TW * 0.134),  // WP1
-    Math.round(TW * 0.134),  // WP2
-    Math.round(TW * 0.134),  // WP3
-    Math.round(TW * 0.134),  // WP4
-    Math.round(TW * 0.134),  // WP5
+    739 + 679,  // CALL
+    1276,       // AIRCRAFT
+    1701,       // ROUTE FL/A
+    1218,       // WP1
+    1361,       // WP2
+    1361,       // WP3
+    1361,       // WP4
+    1361,       // WP5
   ];
   const HDRW = Math.round(TW * 0.5); // Header table half width
 
@@ -1721,11 +1721,8 @@ function exportWord() {
   });
 
   // ── WEATHER TABLE ───────────────────────────────────────────────────────────
-  const WTW = TW;
-  const wcols = [
-    Math.round(WTW*0.09), Math.round(WTW*0.15), Math.round(WTW*0.22),
-    Math.round(WTW*0.27), Math.round(WTW*0.14), Math.round(WTW*0.13)
-  ];
+  const WTW = 11041;
+  const wcols = [849, 1240, 1982, 3999, 1556, 1415];
   const weatherTable = new Table({
     width: { size: WTW, type: WidthType.DXA },
     columnWidths: wcols,
@@ -1930,7 +1927,7 @@ function exportWord() {
       properties: {
         page: {
           size: { width: 12240, height: 15840, orientation: PageOrientation.LANDSCAPE },
-          margin: { top: 720, right: 720, bottom: 720, left: 720 }
+          margin: { top: 720, right: 1080, bottom: 720, left: 1080 }
         }
       },
       children
